@@ -1,0 +1,152 @@
+#!/bin/bash
+set -x
+set -e
+set -u
+
+# Get script directory
+cwd=$(echo $(dirname $0))
+
+# User config
+YAWICHKEY_THEMER_FILE=${YAWICHKEY_THEMER_FILE:=~/.config/themer/current/colors.yaml}
+YAWICHKEY_PYWAL_FILE=${YAWICHKEY_PYWAL_FILE:=~/.cache/wal/colors}
+YAWICHKEY_COLOR_PREFIX=${YAWICHKEY_COLOR_PREFIX:=#ff0044}
+YAWICHKEY_COLOR_KEY=${YAWICHKEY_COLOR_KEY:=#990000}
+YAWICHKEY_THEME=${YAWICHKEY_THEME:=${cwd}/themes/dark-which-key}
+YAWICHKEY_KEY_UNDERLINE=${YAWICHKEY_KEY_UNDERLINE:='false'}
+YAWICHKEY_KEY_BOLD=${YAWICHKEY_KEY_BOLD:='true'}
+YAWICHKEY_WITH_PREFIX=${YAWICHKEY_WITH_PREFIX:='true'}
+YAWICHKEY_PREFIX=${YAWICHKEY_PREFIX:='→'}
+YAWICHKEY_PREFIX_UNDERLINE=${YAWICHKEY_PREFIX_UNDERLINE:='false'}
+YAWICHKEY_PREFIX_BOLD=${YAWICHKEY_PREFIX_BOLD:='false'}
+
+key_underline=$YAWICHKEY_KEY_UNDERLINE
+key_bold=$YAWICHKEY_KEY_BOLD
+with_prefix=$YAWICHKEY_WITH_PREFIX
+prefix=$YAWICHKEY_PREFIX
+prefix_underline=$YAWICHKEY_PREFIX_UNDERLINE
+prefix_bold=$YAWICHKEY_PREFIX_BOLD
+
+function get_color  {
+  color=
+
+  if [[ ! $color ]]; then
+    # Handle themer color with argument name (primary, secondary, ect)
+    color=$(grep "$1" "$YAWICHKEY_THEMER_FILE" |  sed 's/.*#/#/'| sed "s/'//")
+  fi
+
+  if [[ ! $color ]]; then
+    # Handle pywal color
+    if [[ "$1" == "primary" ]]; then
+      color=$(shuf -n 1 "$YAWICHKEY_PYWAL_FILE")
+    fi
+    if [[ "$1" == "secondary" ]]; then
+      color=$(shuf -n 1 "$YAWICHKEY_PYWAL_FILE")
+    fi
+  fi
+
+  if [[ ! $color ]]; then
+    # Then default to a color 
+    if [[ "$1" == "primary" ]]; then
+      color=$YAWICHKEY_COLOR_PREFIX
+    fi
+    if [[ "$1" == "secondary" ]]; then
+      color=$YAWICHKEY_COLOR_KEY
+    fi
+  fi
+
+  echo "$color"
+}
+
+
+key_color=$(get_color 'secondary')
+prefix_color=$(get_color 'primary')
+
+
+# Turn the menu into well formated
+spacei3_which_key_menu_to_pango () {
+  # Insert zero-space-width ​ caracter so the highlighted character it will strictly match with the rofi -filter '​'
+  # Also highlight the character key with color, bold, underline
+  match="​\\2"
+
+  if [[ $key_bold == "true" ]]; then
+    match="<b>$match<\/b>"
+  fi
+
+  if [[ $key_underline == "true" ]]; then
+    match="<u>$match<\/u>"
+  fi
+
+  if [[ $key_color ]]; then
+    match="<span foreground=\"$key_color\">$match<\/span>"
+  fi
+
+  prefix_key=""
+  if [[ $with_prefix == "true" ]]; then
+    prefix_key="\\2"
+    if [[ $prefix_bold == "true" ]]; then
+      prefix_key="<b>$prefix_key<\/b>"
+    fi
+
+    if [[ $prefix_underline == "true" ]]; then
+      prefix_key="<u>$prefix_key<\/u>"
+    fi
+
+    if [[ $prefix_color ]]; then
+      prefix_key="<span foreground=\"$prefix_color\">$prefix_key<\/span>"
+    fi
+    prefix_key="$prefix_key $prefix"
+  fi
+
+  sed -E "s/(.*)\+(.)(.*)/$prefix_key \1$match\3/g" <<< "$1"
+}
+
+# Create rofi command that will be launched with the menu
+rofi_cmd="rofi -dmenu -column 4 -auto-select -show-icons  -disable-history -filter '​' -markup-rows -theme ${cwd}/themes/dark-which-key"
+
+# Directly convert to a menu, launch rofi and print the selected option
+spacei3_which_key_menu () {
+  selection=$(spacei3_which_key_menu_to_pango "$1" | eval "$rofi_cmd" ) 
+  sed -e 's/<[^>]*>//g' <<< ${selection} | sed "s/.*$prefix//"
+}
+
+strip_selection () {
+  sed -e 's/​/\+/g' <<< "$1" | sed -e 's/<[^>]*>//g' | sed "s/.* $prefix.//"
+}
+
+
+# Get keymap file from first argument or use the core one
+key_map_file="${1:-$cwd/layers/core.json}"
+
+key_map=$(cat "$key_map_file")
+
+# Pass key_map to rofi, and get the output as the selected option
+formated_key_map=$(echo "$key_map" | jq -j 'map(.name) | join("\n")')
+
+selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort -n | eval "$rofi_cmd")
+
+# strip markup, reset the '+' character, remove prefix
+selected_stripped=$(sed -e 's/​/\+/g' <<< "${selected}" | sed -e 's/<[^>]*>//g' | sed "s/.* $prefix.//" )
+
+task=$(echo "$key_map" | jq ".[] | select(.name == \"$selected_stripped\")")
+
+# Exit if no task was found
+if [[ $task == "" ]]; then
+  notify-send "No task defined as '$selected_stripped' within config file."
+  exit 1
+fi
+
+# Get the command associated with the task name
+task_command=$(echo "$task" | jq ".command")
+
+# Check whether we need confirmation to run this task
+confirm=$(echo "$task" | jq ".confirm")
+if [[ $confirm == "true" ]]; then
+  # Chain the confirm command before executing the selected command
+  confirm_script=$(${cwd}/yawhich-key ./layers/confirm.json)
+  if [ $confirm_script == "yes" ]; then
+    eval "cd $cwd; \"$task_command\" "
+  fi
+
+else
+  eval "cd $cwd; \"$task_command\" "
+fi
