@@ -1,0 +1,34 @@
+[
+  {
+    "name": "+file",
+    "command": "dolphin"
+  },
+  {
+    "name": "+calculator",
+    "command": "rofi -show calc -modi calc -no-show-match -no-sort"
+  },
+  {
+    "name": "+music",
+    "command": "spotify"
+  },
+  {
+    "name": "+terminal",
+    "command": "kitty"
+  },
+  {
+    "name": "+browser",
+    "command": "vivaldi-snapshot"
+  },
+  {
+    "name": "+process",
+    "command": "kitty --class popup_bashtop bashtop"
+  },
+  {
+    "name": "+kill",
+    "command": "xkill"
+  },
+  {
+    "name": "+editor",
+    "command": "kitty vim"
+  }
+]

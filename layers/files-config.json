@@ -1,0 +1,10 @@
+[
+  {
+    "name": "+dotfiles rcfiles",
+    "command": "kitty vim ~/dotfiles/rcfiles"
+  },
+  {
+    "name": "+yawhich-key configs",
+    "command": "kitty vim ."
+  }
+]
