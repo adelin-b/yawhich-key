@@ -100,12 +100,18 @@ spacei3_which_key_menu_to_pango () {
   sed -E "s/(.*)\+(.)(.*)/$prefix_key \1$match\3/g" <<< "$1"
 }
 
+# Current window location
+window_x_info=$(xdotool getwindowfocus getwindowgeometry getwindowname)
+# window_name=$(xdotool getwindowfocus getwindowclass)
+window_class=$(xprop -id $(xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2) WM_CLASS | cut -d \" -f2)
+# geometry=$(grep Geometry "$window_x_info")
+# echo "$geometry"
+
 # Create rofi command that will be launched with the menu
-rofi_cmd="rofi -dmenu -column 4 -auto-select -show-icons  -disable-history -filter '​' -markup-rows -theme ${cwd}/themes/dark-which-key"
+rofi_cmd="rofi -dmenu -column 4 -auto-select -show-icons -location 6 -disable-history -filter '​' -markup-rows -theme ${cwd}/themes/dark-which-key"
 
 # Directly convert to a menu, launch rofi and print the selected option
 spacei3_which_key_menu () {
-# strip markup, reset the '+' character, remove prefix and get back to original selected "name" property
   selection=$(spacei3_which_key_menu_to_pango "$1" | eval "$rofi_cmd" ) 
   sed -e 's/<[^>]*>//g' <<< ${selection} | sed "s/.*$prefix//"
 }
@@ -115,8 +121,18 @@ strip_selection () {
 }
 
 
+if [[ "$1" == "--major" ]]; then
+  key_map_file="$cwd/layers/$window_class.json"
+
+  if [[ ! -f $key_map_file ]]; then
+    notify-send "No major mode layer for $window_class"
+  fi
+
+else
+  key_map_file="${1:-$cwd/layers/core.json}"
+fi
 # Get keymap file from first argument or use the core one
-key_map_file="${1:-$cwd/layers/core.json}"
+
 
 key_map=$(cat "$key_map_file")
 
