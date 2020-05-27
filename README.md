@@ -8,6 +8,21 @@ An universal which-key shortcut displayer inspired from emacs-which-key
 
 # Get started
 
+### Shortcuts
+Create two shortcuts with your favorite shortcut manager
+```bash
+bash ~/path/to/yawhich-key # for default commands
+bash ~/path/to/yawhich-key --major #for application specific commands
+```
+#### i3
+
+```
+bindsym $mod+comma exec "bash ~/path/to/yawhich-key --major"
+bindsym $mod+space exec "bash ~/path/to/yawhich-key"
+
+```
+
+
 ###  minor mode (general short cut map)
 `./yawhich-key`
 
