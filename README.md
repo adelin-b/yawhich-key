@@ -10,6 +10,7 @@ An universal which-key shortcut displayer inspired from emacs-which-key
 `./yawhich-key`
 
 Configure your custom commands inside `./layers/core.json` (core.json is the entry point by default) and chain them by calling `./yawhich-key layers/custom-layer.json`
+(of course yawich-key is unixporn compliant and can be customized through pywal, themer, env variable)
 ```json
 // foo.json
 [
@@ -41,4 +42,5 @@ Configure your custom commands inside `./layers/core.json` (core.json is the ent
 - [ ] Standalone program (not using rofi), handle special keys shortcuts
 
 # Contributing
-Any contribution is welcome, especially ideas of usefull shortcuts
+Any contribution is welcome, especially ideas of usefull shortcuts,
+themes, tackling ongoing issues, security issues / fix !
