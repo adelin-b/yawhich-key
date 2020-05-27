@@ -1,0 +1,14 @@
+[
+  {
+    "name": "+delete",
+    "command": "xdotool key ctrl+w"
+  },
+  {
+    "name": "+/ search",
+    "command": "xdotool key ctrl+space"
+  },
+  {
+    "name": "+window",
+    "command": "./yawhichkey ./layers/vivaldi-snapshot.window.json"
+  }
+]
