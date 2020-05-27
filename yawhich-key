@@ -105,6 +105,7 @@ rofi_cmd="rofi -dmenu -column 4 -auto-select -show-icons  -disable-history -filt
 
 # Directly convert to a menu, launch rofi and print the selected option
 spacei3_which_key_menu () {
+# strip markup, reset the '+' character, remove prefix and get back to original selected "name" property
   selection=$(spacei3_which_key_menu_to_pango "$1" | eval "$rofi_cmd" ) 
   sed -e 's/<[^>]*>//g' <<< ${selection} | sed "s/.*$prefix//"
 }
@@ -124,8 +125,7 @@ formated_key_map=$(echo "$key_map" | jq -j 'map(.name) | join("\n")')
 
 selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort -n | eval "$rofi_cmd")
 
-# strip markup, reset the '+' character, remove prefix
-selected_stripped=$(sed -e 's/​/\+/g' <<< "${selected}" | sed -e 's/<[^>]*>//g' | sed "s/.* $prefix.//" )
+selected_stripped=$( strip_selection "$selected")
 
 task=$(echo "$key_map" | jq ".[] | select(.name == \"$selected_stripped\")")
 
