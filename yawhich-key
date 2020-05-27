@@ -120,12 +120,22 @@ strip_selection () {
   sed -e 's/​/\+/g' <<< "$1" | sed -e 's/<[^>]*>//g' | sed "s/.* $prefix.//"
 }
 
-key_map_file="${1:-$cwd/layers/core.json}"
-if [[ "$key_map_file" == "--major" ]]; then
+arg1="${1:-}"
+
+if [[ "$arg1" == "--major-name" ]]; then
+  echo $window_class
+  exit 0
+fi
+
+key_map_file="${arg1:-$cwd/layers/core.json}"
+
+if [[ "$arg1" == "--major" ]]; then
   key_map_file="$cwd/layers/$window_class.json"
 
   if [[ ! -f $key_map_file ]]; then
-    notify-send "No major mode layer for $window_class"
+    notify-send "yawhich-key" "No major mode layer for $window_class, you can create a new one with <b>f c n</b>"
+    echo $window_class
+    exit 0
   fi
 fi
 # Get keymap file from first argument or use the core one

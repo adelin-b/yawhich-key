@@ -1,10 +1,22 @@
 [
   {
     "name": "+dotfiles rcfiles",
-    "command": "kitty $EDITOR ~/dotfiles/rcfiles"
+    "command": "kitty vim ~/dotfiles/rcfiles"
   },
   {
     "name": "+yawhich-key configs",
-    "command": "kitty $EDITOR ."
+    "command": "kitty vim ."
+  },
+  {
+    "name": "yawhich-key +Diff",
+    "command": "kitty --hold git difftool origin/master"
+  },
+  {
+    "name": "yawhich-key +update",
+    "command": "git pull`"
+  },
+  {
+    "name": "+new-layer-for-current-window",
+    "command": "kitty vim ./layers/$(./yawhich-key --major-name).json"
   }
 ]
