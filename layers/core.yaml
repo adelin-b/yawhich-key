@@ -15,3 +15,5 @@
   name: +notifications
 - command: ./yawhich-key ./layers/apps.yaml
   name: +apps
+- command: ./yawhich-key --major
+  name: +major
