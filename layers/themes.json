@@ -1,6 +1,0 @@
-[
-  {
-    "name": "+Area screenshot",
-    "command": "gnome-screenshot -a"
-  }
-]

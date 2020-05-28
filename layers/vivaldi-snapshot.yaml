@@ -1,0 +1,14 @@
+- command: xdotool key ctrl+shift+k
+  name: +capture
+- command: xdotool key ctrl+space
+  name: +/ search
+- command: xdotool key ctrl+d
+  name: +bookmarks-current
+- command: xdotool key ctrl+b
+  name: open-+Bookmarks
+- command: ''
+  name: +yanks (todo)
+- command: ''
+  name: +panel (todo)
+- command: ./yawhichkey ./layers/vivaldi-snapshot.window.yaml
+  name: +window

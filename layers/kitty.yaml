@@ -1,0 +1,8 @@
+- command: xdotool key ctrl+shift+h h
+  name: +help
+- command: xdotool key ctrl+shift+h slash
+  name: +/ search
+- command: xdotool key ctrl+shift+u
+  name: +insert
+- command: xdotool key ctrl+shift+e
+  name: +url

@@ -1,0 +1,4 @@
+- command: ./yawhich-key ./layers/files-config.yaml
+  name: +config
+- command: kitty ranger
+  name: file-+tree

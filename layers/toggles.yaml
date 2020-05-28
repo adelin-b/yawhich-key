@@ -1,0 +1,4 @@
+- command: i3-msg bar mode toggle
+  name: i3 +status bar
+- command: '[ `pgrep glava` ] && killall glava || sh ~/.config/glava/restart_glava.sh'
+  name: +glava

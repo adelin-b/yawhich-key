@@ -1,0 +1,16 @@
+- command: dolphin
+  name: +file
+- command: rofi -show calc -modi calc -no-show-match -no-sort
+  name: +calculator
+- command: spotify
+  name: +music
+- command: $terminal
+  name: +terminal
+- command: $browser
+  name: +browser
+- command: $terminal --class popup_bashtop bashtop
+  name: +process
+- command: xkill
+  name: +kill
+- command: $editor
+  name: +editor

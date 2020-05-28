@@ -1,0 +1,15 @@
+- command: systemctl reboot
+  confirm: true
+  name: +reboot
+- command: systemctl power off
+  confirm: true
+  name: +shutdown
+- command: systemctl suspend
+  confirm: true
+  name: sus+pend
+- command: systemctl hibernate
+  confirm: true
+  name: +hibernate
+- command: ~/dotfiles/scripts/lock.sh
+  confirm: true
+  name: +lock

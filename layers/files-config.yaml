@@ -1,0 +1,10 @@
+- command: $editor ~/dotfiles/rcfiles
+  name: +dotfiles rcfiles
+- command: $editor .
+  name: +yawhich-key configs
+- command: kitty --hold git difftool origin/master
+  name: yawhich-key +Diff
+- command: git pull`
+  name: yawhich-key +update
+- command: $editor ./layers/$(./yawhich-key --major-name).json
+  name: +new-layer-for-current-window

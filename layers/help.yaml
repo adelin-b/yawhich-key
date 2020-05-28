@@ -1,0 +1,8 @@
+- command: xdg-open 'https://github.com/adelin-b/yawhich-key/issues/new'
+  name: +open issue yawhich-key
+- command: xdg-open 'https://github.com/adelin-b/yawhich-key/issues'
+  name: +issue list yawhich-key
+- command: xdg-open 'https://github.com/adelin-b/yawhich-key/pull/new'
+  name: open +pull request yawhich-key
+- command: xdg-open https://gist.github.com/search?q=filename%3Ayawhich*&ref=searchresults
+  name: +gist list of yawhich-key layers
