@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+# set -x
 set -e
 set -u
 
@@ -7,6 +7,21 @@ set -u
 cwd=$(echo $(dirname $0))
 
 # User config
+terminal="kitty"
+terminal_hold="kitty --hold"
+editor="$terminal vim"
+
+echoerr() { echo "$@" 1>&2; }
+if [ -z "${BROWSER-}" ]; then
+ browser="firefox"
+  message="no BROWSER env variable found, consider putting it your profile https://wiki.archlinux.org/index.php/Environment_variables\n\nDefaulting to $browser "
+  notify-send "yawhich-key" "$message"
+else
+  browser=$BROWSER
+fi
+
+
+
 YAWICHKEY_THEMER_FILE=${YAWICHKEY_THEMER_FILE:=~/.config/themer/current/colors.yaml}
 YAWICHKEY_PYWAL_FILE=${YAWICHKEY_PYWAL_FILE:=~/.cache/wal/colors}
 YAWICHKEY_COLOR_PREFIX=${YAWICHKEY_COLOR_PREFIX:=#ff0044}
@@ -19,6 +34,7 @@ YAWICHKEY_PREFIX=${YAWICHKEY_PREFIX:='→'}
 YAWICHKEY_PREFIX_UNDERLINE=${YAWICHKEY_PREFIX_UNDERLINE:='false'}
 YAWICHKEY_PREFIX_BOLD=${YAWICHKEY_PREFIX_BOLD:='false'}
 
+
 key_underline=$YAWICHKEY_KEY_UNDERLINE
 key_bold=$YAWICHKEY_KEY_BOLD
 with_prefix=$YAWICHKEY_WITH_PREFIX
@@ -26,6 +42,23 @@ prefix=$YAWICHKEY_PREFIX
 prefix_underline=$YAWICHKEY_PREFIX_UNDERLINE
 prefix_bold=$YAWICHKEY_PREFIX_BOLD
 
+# Dependency check
+
+if ! command -v rofi; then
+  message="Dependency 'rofi' not installed"
+  echoerr "$message"
+  notify-send "yawhich-key" "$message"
+  exit 1
+fi
+if ! command -v yq; then
+  message="Dependency 'yq' not installed, please get that one from https://github.com/mikefarah/yq (WARNING there is another yq in python but it is too slow, dont install the wrong one)"
+  echoerr "$message"
+  notify-send "yawhich-key" "$message"
+  exit 1
+fi
+
+
+# Functions
 function get_color  {
   color=
 
@@ -101,11 +134,9 @@ spacei3_which_key_menu_to_pango () {
 }
 
 # Current window location
-window_x_info=$(xdotool getwindowfocus getwindowgeometry getwindowname)
+# window_x_info=$(xdotool getwindowfocus getwindowgeometry getwindowname)
 # window_name=$(xdotool getwindowfocus getwindowclass)
 window_class=$(xprop -id $(xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2) WM_CLASS | cut -d \" -f2)
-# geometry=$(grep Geometry "$window_x_info")
-# echo "$geometry"
 
 # Create rofi command that will be launched with the menu
 rofi_cmd="rofi -dmenu -column 4 -auto-select -show-icons -location 6 -disable-history -filter '​' -markup-rows -theme ${cwd}/themes/dark-which-key"
@@ -127,10 +158,10 @@ if [[ "$arg1" == "--major-name" ]]; then
   exit 0
 fi
 
-key_map_file="${arg1:-$cwd/layers/core.json}"
+key_map_file="${arg1:-$cwd/layers/core.yaml}"
 
 if [[ "$arg1" == "--major" ]]; then
-  key_map_file="$cwd/layers/$window_class.json"
+  key_map_file="$cwd/layers/$window_class.yaml"
 
   if [[ ! -f $key_map_file ]]; then
     notify-send "yawhich-key" "No major mode layer for $window_class, you can create a new one with <b>f c n</b>"
@@ -144,13 +175,23 @@ fi
 key_map=$(cat "$key_map_file")
 
 # Pass key_map to rofi, and get the output as the selected option
-formated_key_map=$(echo "$key_map" | jq -j 'map(.name) | join("\n")')
+# Using jq json
+# formated_key_map=$(echo "$key_map" | jq -j 'map(.name) | join("\n")')
+# Using yq python
+# formated_key_map=$(echo "$key_map" | yq -j 'map(.name) | join("\n")')
+# Using yq go
+formated_key_map=$(echo "$key_map" | yq r - .name)
 
 selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort -n | eval "$rofi_cmd")
 
 selected_stripped=$( strip_selection "$selected")
 
-task=$(echo "$key_map" | jq ".[] | select(.name == \"$selected_stripped\")")
+# Using jq json
+# task=$(echo "$key_map" | jq ".[] | select(.name == \"$selected_stripped\")")
+# Using yq python
+# task=$(echo "$key_map" | yq ".[] | select(.name == \"$selected_stripped\")")
+# Using yq go
+task=$(echo "$key_map" | yq r - "(**==$selected_stripped)")
 
 # Exit if no task was found
 if [[ $task == "" ]]; then
@@ -159,17 +200,29 @@ if [[ $task == "" ]]; then
 fi
 
 # Get the command associated with the task name
-task_command=$(echo "$task" | jq ".command")
+# Using jq json
+# task_command=$(echo "$task" | jq ".command")
+# Using yq python
+# task_command=$(echo "$task" | yq ".command")
+# Using yq go
+task_command=$(echo "$task" | yq r - "command")
 
 # Check whether we need confirmation to run this task
-confirm=$(echo "$task" | jq ".confirm")
+# Using jq json
+# confirm=$(echo "$task" | jq ".confirm")
+# Using yq python
+# confirm=$(echo "$task" | yq ".confirm")
+# Using yq go
+confirm=$(echo "$task" | yq r - "confirm")
+
 if [[ $confirm == "true" ]]; then
   # Chain the confirm command before executing the selected command
-  confirm_script=$(${cwd}/yawhich-key ./layers/confirm.json)
+  confirm_script=$(${cwd}/yawhich-key ./layers/confirm.yaml)
   if [ $confirm_script == "yes" ]; then
-    eval "cd $cwd; \"$task_command\" "
+    # Eval the command and display notification if there is errors
+    eval "cd $cwd; $task_command" 2> /tmp/yawhich-key-error.log || notify-send yawhich-key "$(cat /tmp/yawhich-key-error.log)"
   fi
-
 else
-  eval "cd $cwd; \"$task_command\" "
+    # Eval the command and display notification if there is errors
+    eval "cd $cwd; $task_command" 2> /tmp/yawhich-key-error.log || notify-send yawhich-key "$(cat /tmp/yawhich-key-error.log)"
 fi
