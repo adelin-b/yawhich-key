@@ -4,5 +4,5 @@
   name: +diff
 - command: $terminal_hold git pull && xdg-open ./CHANGELOG.md
   name: +update
-- command: $editor ./layers/$(./yawhich-key --major-name).yaml
+- command: $editor ./layers/$window_class.yaml
   name: +new-layer-for-current-window
