@@ -17,3 +17,5 @@
   name: +apps
 - command: ./yawhich-key --major
   name: +major
+- command: ./yawhich-key ./layers/windows.yaml
+  name: +windows

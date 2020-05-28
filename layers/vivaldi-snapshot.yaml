@@ -10,5 +10,5 @@
   name: +yanks (todo)
 - command: ''
   name: +panel (todo)
-- command: ./yawhichkey ./layers/vivaldi-snapshot.window.yaml
+- command: ./yawhich-key ./layers/vivaldi-snapshot.window.yaml
   name: +window

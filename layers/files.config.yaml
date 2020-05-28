@@ -1,0 +1,4 @@
+- command: $editor ~/dotfiles/rcfiles
+  name: +dotfiles rcfiles
+- command: ./yawhich-key ./layers/files.config.yawhich-key.yaml
+  name: +yawhich-key configs

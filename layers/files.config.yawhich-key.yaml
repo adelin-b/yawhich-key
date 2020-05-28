@@ -1,10 +1,8 @@
-- command: $editor ~/dotfiles/rcfiles
-  name: +dotfiles rcfiles
 - command: $editor .
-  name: +yawhich-key configs
+  name: +open-configs
 - command: $terminal_hold git difftool origin/master
-  name: yawhich-key +Diff
+  name: +diff
 - command: $terminal_hold git pull && xdg-open ./CHANGELOG.md
-  name: yawhich-key +update
+  name: +update
 - command: $editor ./layers/$(./yawhich-key --major-name).yaml
   name: +new-layer-for-current-window
