@@ -107,6 +107,17 @@
     text-color: @alternate-active-foreground;
 }
 
+#prompt {
+    padding: 0 0 0 20;
+    background-color: @alternate-active-background;
+    text-color: @alternate-active-foreground;
+}
+
+inputbar {
+    margin-left: 20px;
+     children: [ prompt, entry ];
+ }
+
 #scrollbar {
     width: 4px;
     border: 0;

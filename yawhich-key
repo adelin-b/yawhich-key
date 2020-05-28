@@ -148,9 +148,6 @@ window_class=$(xprop -id "$(xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2
 # shellcheck disable=2034
 window_id=$(xdotool getwindowfocus)
 
-# Create rofi command that will be launched with the menu
-rofi_cmd="rofi -dmenu -filter '​' $rofi_options  -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -markup-rows -theme ${cwd}/themes/dark-which-key"
-
 # Directly convert to a menu, launch rofi and print the selected option
 spacei3_which_key_menu () {
   selection=$(spacei3_which_key_menu_to_pango "$1" | eval "$rofi_cmd" ) 
@@ -194,6 +191,16 @@ key_map=$(echo "$add_new" | cat "$key_map_file" - )
 # formated_key_map=$(echo "$key_map" | yq -j 'map(.name) | join("\n")')
 # Using yq go
 formated_key_map=$(echo "$key_map" | yq r - .name)
+
+
+layer_name=$(basename "$key_map_file" .yaml | sed "s/\./$prefix/")
+
+
+# Create rofi command that will be launched with the menu
+rofi_cmd="rofi -dmenu -filter '​' $rofi_options -p $layer_name  -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -markup-rows -theme ${cwd}/themes/dark-which-key"
+
+
+
 # Something weird happen when sorting string with /s, --version-sort is the only option that worked
 selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort --version-sort | eval "$rofi_cmd")
 
