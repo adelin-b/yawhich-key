@@ -1,5 +1,7 @@
 #!/bin/bash
-# set -x
+
+set -x
+
 set -e
 set -u
 
@@ -170,16 +172,19 @@ if [[ "$arg1" == "--major" ]]; then
   key_map_file="$cwd/layers/$window_class.yaml"
 
   if [[ ! -f $key_map_file ]]; then
-    notify-send "yawhich-key" "No major mode layer for $window_class, you can create a new one with <b>f c n</b>"
+    notify-send "yawhich-key" "No major mode layer for window \"$window_class\", you can create a new one with <b>f c n</b>"
     echo $window_class
     exit 0
   fi
 fi
+
+add_new="- command: $editor $key_map_file
+  name: +> new command"
+
 # Get keymap file from first argument or use the core one
+key_map=$(echo "$add_new" | cat "$key_map_file" - )
 
-
-key_map=$(cat "$key_map_file")
-
+# notify-send "$key_map"
 # Pass key_map to rofi, and get the output as the selected option
 # Using jq json
 # formated_key_map=$(echo "$key_map" | jq -j 'map(.name) | join("\n")')
@@ -187,8 +192,8 @@ key_map=$(cat "$key_map_file")
 # formated_key_map=$(echo "$key_map" | yq -j 'map(.name) | join("\n")')
 # Using yq go
 formated_key_map=$(echo "$key_map" | yq r - .name)
-
-selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort -n | eval "$rofi_cmd")
+# Something weird happen when sorting string with /s, --version-sort is the only option that worked
+selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort --version-sort | eval "$rofi_cmd")
 
 selected_stripped=$( strip_selection "$selected")
 
