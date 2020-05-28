@@ -7,8 +7,11 @@ set -u
 cwd=$(echo $(dirname $0))
 
 # User config
+# This can be using in the command evaluation
 terminal="kitty"
+# shellcheck disable=2034
 terminal_hold="kitty --hold"
+# shellcheck disable=2034
 editor="$terminal vim"
 
 echoerr() { echo "$@" 1>&2; }
@@ -135,11 +138,14 @@ spacei3_which_key_menu_to_pango () {
 
 # Current window location
 # window_x_info=$(xdotool getwindowfocus getwindowgeometry getwindowname)
-# window_name=$(xdotool getwindowfocus getwindowclass)
-window_class=$(xprop -id $(xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2) WM_CLASS | cut -d \" -f2)
+window_class=$(xprop -id "$(xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2)" WM_CLASS | cut -d \" -f2)
+
+# This can be using in the command evaluation
+# shellcheck disable=2034
+window_id=$(xdotool getwindowfocus)
 
 # Create rofi command that will be launched with the menu
-rofi_cmd="rofi -dmenu -column 4 -auto-select -show-icons -location 6 -disable-history -filter '​' -markup-rows -theme ${cwd}/themes/dark-which-key"
+rofi_cmd="rofi -dmenu -no-sort -column 4 -auto-select -show-icons -location 6 -disable-history -filter '​' -markup-rows -theme ${cwd}/themes/dark-which-key"
 
 # Directly convert to a menu, launch rofi and print the selected option
 spacei3_which_key_menu () {
