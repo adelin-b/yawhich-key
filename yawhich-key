@@ -171,7 +171,7 @@ if [[ "$arg1" == "--major" ]]; then
   key_map_file="$cwd/layers/$window_class.yaml"
 
   if [[ ! -f $key_map_file ]]; then
-    notify-send "yawhich-key" "No major mode layer for window \"$window_class\", you can create a new one with <b>f c n</b>"
+    notify-send "yawhich-key" "No major mode layer for window \"$window_class\", you can create a new one with <b>f c y n</b>"
     echo $window_class
     exit 0
   fi
@@ -193,7 +193,7 @@ key_map=$(echo "$add_new" | cat "$key_map_file" - )
 formated_key_map=$(echo "$key_map" | yq r - .name)
 
 
-layer_name=$(basename "$key_map_file" .yaml | sed "s/\./$prefix/")
+layer_name=$(basename "$key_map_file" .yaml | sed "s/\./$prefix/g")
 
 
 # Create rofi command that will be launched with the menu
