@@ -22,25 +22,25 @@ fi
 
 
 
-YAWICHKEY_THEMER_FILE=${YAWICHKEY_THEMER_FILE:=~/.config/themer/current/colors.yaml}
-YAWICHKEY_PYWAL_FILE=${YAWICHKEY_PYWAL_FILE:=~/.cache/wal/colors}
-YAWICHKEY_COLOR_PREFIX=${YAWICHKEY_COLOR_PREFIX:=#ff0044}
-YAWICHKEY_COLOR_KEY=${YAWICHKEY_COLOR_KEY:=#990000}
-YAWICHKEY_THEME=${YAWICHKEY_THEME:=${cwd}/themes/dark-which-key}
-YAWICHKEY_KEY_UNDERLINE=${YAWICHKEY_KEY_UNDERLINE:='false'}
-YAWICHKEY_KEY_BOLD=${YAWICHKEY_KEY_BOLD:='true'}
-YAWICHKEY_WITH_PREFIX=${YAWICHKEY_WITH_PREFIX:='true'}
-YAWICHKEY_PREFIX=${YAWICHKEY_PREFIX:='→'}
-YAWICHKEY_PREFIX_UNDERLINE=${YAWICHKEY_PREFIX_UNDERLINE:='false'}
-YAWICHKEY_PREFIX_BOLD=${YAWICHKEY_PREFIX_BOLD:='false'}
+YAWHICHKEY_THEMER_FILE=${YAWHICHKEY_THEMER_FILE:=~/.config/themer/current/colors.yaml}
+YAWHICHKEY_PYWAL_FILE=${YAWHICHKEY_PYWAL_FILE:=~/.cache/wal/colors}
+YAWHICHKEY_COLOR_PREFIX=${YAWHICHKEY_COLOR_PREFIX:=#ff0044}
+YAWHICHKEY_COLOR_KEY=${YAWHICHKEY_COLOR_KEY:=#990000}
+YAWHICHKEY_THEME=${YAWHICHKEY_THEME:=${cwd}/themes/dark-which-key}
+YAWHICHKEY_KEY_UNDERLINE=${YAWHICHKEY_KEY_UNDERLINE:='false'}
+YAWHICHKEY_KEY_BOLD=${YAWHICHKEY_KEY_BOLD:='true'}
+YAWHICHKEY_WITH_PREFIX=${YAWHICHKEY_WITH_PREFIX:='true'}
+YAWHICHKEY_PREFIX=${YAWHICHKEY_PREFIX:='→'}
+YAWHICHKEY_PREFIX_UNDERLINE=${YAWHICHKEY_PREFIX_UNDERLINE:='false'}
+YAWHICHKEY_PREFIX_BOLD=${YAWHICHKEY_PREFIX_BOLD:='false'}
 
 
-key_underline=$YAWICHKEY_KEY_UNDERLINE
-key_bold=$YAWICHKEY_KEY_BOLD
-with_prefix=$YAWICHKEY_WITH_PREFIX
-prefix=$YAWICHKEY_PREFIX
-prefix_underline=$YAWICHKEY_PREFIX_UNDERLINE
-prefix_bold=$YAWICHKEY_PREFIX_BOLD
+key_underline=$YAWHICHKEY_KEY_UNDERLINE
+key_bold=$YAWHICHKEY_KEY_BOLD
+with_prefix=$YAWHICHKEY_WITH_PREFIX
+prefix=$YAWHICHKEY_PREFIX
+prefix_underline=$YAWHICHKEY_PREFIX_UNDERLINE
+prefix_bold=$YAWHICHKEY_PREFIX_BOLD
 
 # Dependency check
 
@@ -64,26 +64,26 @@ function get_color  {
 
   if [[ ! $color ]]; then
     # Handle themer color with argument name (primary, secondary, ect)
-    color=$(grep "$1" "$YAWICHKEY_THEMER_FILE" |  sed 's/.*#/#/'| sed "s/'//")
+    color=$(grep "$1" "$YAWHICHKEY_THEMER_FILE" |  sed 's/.*#/#/'| sed "s/'//")
   fi
 
   if [[ ! $color ]]; then
     # Handle pywal color
     if [[ "$1" == "primary" ]]; then
-      color=$(shuf -n 1 "$YAWICHKEY_PYWAL_FILE")
+      color=$(shuf -n 1 "$YAWHICHKEY_PYWAL_FILE")
     fi
     if [[ "$1" == "secondary" ]]; then
-      color=$(shuf -n 1 "$YAWICHKEY_PYWAL_FILE")
+      color=$(shuf -n 1 "$YAWHICHKEY_PYWAL_FILE")
     fi
   fi
 
   if [[ ! $color ]]; then
     # Then default to a color 
     if [[ "$1" == "primary" ]]; then
-      color=$YAWICHKEY_COLOR_PREFIX
+      color=$YAWHICHKEY_COLOR_PREFIX
     fi
     if [[ "$1" == "secondary" ]]; then
-      color=$YAWICHKEY_COLOR_KEY
+      color=$YAWHICHKEY_COLOR_KEY
     fi
   fi
 
