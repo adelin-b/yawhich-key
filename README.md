@@ -11,19 +11,38 @@ An universal which-key shortcut displayer inspired from emacs-which-key
 ### Shortcuts
 Create two shortcuts with your favorite shortcut manager
 ```bash
-bash ~/path/to/yawhich-key # for default commands
-bash ~/path/to/yawhich-key --major # for application specific commands
+bash ~/path/to/yawhich-key # (minor mode) for default commands, conventionaly on space
+bash ~/path/to/yawhich-key --major #(major mode) for application specific commands, conventionaly on comma
 ```
 #### i3
 
 ```
-bindsym $mod+comma exec "bash ~/path/to/yawhich-key --major"
 bindsym $mod+space exec "bash ~/path/to/yawhich-key"
+bindsym $mod+comma exec "bash ~/path/to/yawhich-key --major"
 
 ```
 
+### Create config 
+```bash
+mkdir ${XDG_CONFIG_HOME:=$HOME/.config}/yawhich-key
+$EDITOR ${XDG_CONFIG_HOME:=$HOME/.config}/yawhich-key/config.yaml
+```
 
-###  minor mode (general short cut map)
+```yaml
+# .config/yawhich-key/config.yaml
+commands:
+  editor: code
+  terminal: kitty
+  terminal_hold: kitty --hold
+  browser: vivaldi-snapshot
+property:
+  # Here you can override default options (man rofi)
+  rofi_options: -lines 5 -location 6
+```
+
+
+
+###  Minor mode (general short cut map)
 `./yawhich-key`
 
 Configure your custom commands inside `./layers/core.yaml` (core.yaml is the entry point by default) and chain them by calling `./yawhich-key layers/custom-layer.yaml`
@@ -39,8 +58,8 @@ Configure your custom commands inside `./layers/core.yaml` (core.yaml is the ent
 ```
 
 
-###  major mode (current window class specific)
-`./yawhich-key --major` will search the matching window WM_CLASS in `layer/wm_class.yaml`
+###  Major mode (current window class specific)
+`./yawhich-key --major` will search the matching currently focused window WM_CLASS in `layers/wm_class.yaml`
 If nothing is found it will `notifiy-send an error`
 
 

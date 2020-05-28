@@ -7,16 +7,20 @@ set -u
 cwd=$(echo $(dirname $0))
 
 # User config
+config_dir=${XDG_CONFIG_HOME:=$HOME/.config/yawhich-key}
+
+
 # This can be using in the command evaluation
-terminal="kitty"
+terminal=$( yq r - commands.terminal < "$config_dir/config.yaml" )
+terminal_hold=$( yq r - commands.terminal_hold < "$config_dir/config.yaml" )
+editor=$( yq r - commands.editor < "$config_dir/config.yaml" )
+rofi_options=$( yq r - property.rofi_options < "$config_dir/config.yaml" )
 # shellcheck disable=2034
-terminal_hold="kitty --hold"
 # shellcheck disable=2034
-editor="$terminal vim"
 
 echoerr() { echo "$@" 1>&2; }
 if [ -z "${BROWSER-}" ]; then
- browser="firefox"
+  browser=$( yq r - commands.browser < "$config_dir/config.yaml" )
   message="no BROWSER env variable found, consider putting it your profile https://wiki.archlinux.org/index.php/Environment_variables\n\nDefaulting to $browser "
   # notify-send "yawhich-key" "$message"
 else
@@ -145,7 +149,7 @@ window_class=$(xprop -id "$(xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2
 window_id=$(xdotool getwindowfocus)
 
 # Create rofi command that will be launched with the menu
-rofi_cmd="rofi -dmenu -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -filter '​' -markup-rows -theme ${cwd}/themes/dark-which-key"
+rofi_cmd="rofi -dmenu -filter '​' $rofi_options  -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -markup-rows -theme ${cwd}/themes/dark-which-key"
 
 # Directly convert to a menu, launch rofi and print the selected option
 spacei3_which_key_menu () {
