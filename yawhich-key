@@ -18,7 +18,7 @@ echoerr() { echo "$@" 1>&2; }
 if [ -z "${BROWSER-}" ]; then
  browser="firefox"
   message="no BROWSER env variable found, consider putting it your profile https://wiki.archlinux.org/index.php/Environment_variables\n\nDefaulting to $browser "
-  notify-send "yawhich-key" "$message"
+  # notify-send "yawhich-key" "$message"
 else
   browser=$BROWSER
 fi
@@ -145,7 +145,7 @@ window_class=$(xprop -id "$(xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2
 window_id=$(xdotool getwindowfocus)
 
 # Create rofi command that will be launched with the menu
-rofi_cmd="rofi -dmenu -no-sort -column 4 -auto-select -show-icons -location 6 -disable-history -filter '​' -markup-rows -theme ${cwd}/themes/dark-which-key"
+rofi_cmd="rofi -dmenu -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -filter '​' -markup-rows -theme ${cwd}/themes/dark-which-key"
 
 # Directly convert to a menu, launch rofi and print the selected option
 spacei3_which_key_menu () {
