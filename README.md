@@ -1,4 +1,4 @@
-# yawich-key
+# yawhich-key
 
 This repository is a work in progress
 
