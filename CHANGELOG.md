@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.0](https://github.com/adelin-b/yawhich-key/compare/v0.2.0...v0.3.0) (2020-05-28)
+
+
+### Features
+
+* **add_new:** propose to add new command directly ([fe9de07](https://github.com/adelin-b/yawhich-key/commit/fe9de07abafc7198d120abbf2ea0fc9efc945b53))
+* **layer/core:** add major mode command in core ([cb216ae](https://github.com/adelin-b/yawhich-key/commit/cb216ae95735760f2d76a8132a50f4f297a6f701))
+
+
+### Bug Fixes
+
+* **sorting:** now sort list correctly ([b193326](https://github.com/adelin-b/yawhich-key/commit/b19332645209851f7135e709f2ac69563c13d1fd))
+* wrong naming of env variables ([cd2444d](https://github.com/adelin-b/yawhich-key/commit/cd2444d67e4ec7efbacf8ebd1bd1da12f471c4be))
+
 ## 0.2.0 (2020-05-28)
 
 
