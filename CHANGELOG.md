@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.1](https://github.com/adelin-b/yawhich-key/compare/v0.3.0...v0.3.1) (2020-05-28)
+
+
+### Bug Fixes
+
+* handle dipslay of more keys at once ([c6258d3](https://github.com/adelin-b/yawhich-key/commit/c6258d3043437d1aa3ba587da68dca4f6afa1ac9))
+
 ## [0.3.0](https://github.com/adelin-b/yawhich-key/compare/v0.2.0...v0.3.0) (2020-05-28)
 
 
