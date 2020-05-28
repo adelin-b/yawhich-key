@@ -65,6 +65,9 @@ If nothing is found it will `notifiy-send an error`
 - [ ] Easy sharing layers with community through gist upload commands (inspired by pet)
 - [ ] Standalone program (not using rofi), handle special keys shortcuts
 
+# Changelog
+[CHANGELOG.md](./CHANGELOG.md)
+
 # Contributing
 Any contribution is welcome, especially ideas of usefull shortcuts,
 themes, tackling ongoing issues, security issues / fix !
