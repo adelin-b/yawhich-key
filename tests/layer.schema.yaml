@@ -1,0 +1,15 @@
+name: str(required=True)
+
+# Which window class with it match against
+window_class: any(list(str()), str())
+
+dependencies: list(include('dependency', required=False))
+
+keymaps: include('keymaps')
+---
+dependency:
+  command: str(required=False)
+  install: str(required=False)
+  uninstall: str(required=False)
+
+keymaps: map(include('keymaps'), str(), null(), key=(regex(".*\+.*")) )

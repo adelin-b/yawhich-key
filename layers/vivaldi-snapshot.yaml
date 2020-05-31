@@ -7,16 +7,13 @@ name: vivaldi-snapshot.yaml.bak
 
 keymaps:
     +capture: xdotool key ctrl+shift+k
-    
     +/-search: xdotool key ctrl+space
-    
     +bookmarks-current: xdotool key ctrl+d
-    
     open-+Bookmarks: xdotool key ctrl+b
-    
     +yanks-(todo): 
-    
     +panel-(todo): 
-    
-    +window: ./yawhich-key ./layers/vivaldi-snapshot.window.yaml
+    +window:
+      +delete: xdotool key ctrl+w
+      
+      +/-search: xdotool key ctrl+space
     

@@ -6,23 +6,44 @@ name: core.yaml.bak
 # dependencies: list(include('dependency', required=False))
 
 keymaps:
-    +/-search: rofi -auto-select -show-icons -drun-show-actions -combi-modi window,drun,ssh -show combi -modi combi
-    
-    +capture: ./yawhich-key ./layers/capture.yaml
-    
-    +toggles: ./yawhich-key ./layers/toggles.yaml
-    
-    +files: ./yawhich-key ./layers/files.yaml
-    
-    +help: ./yawhich-key ./layers/help.yaml
-    
-    +system: ./yawhich-key ./layers/system.yaml
-    
-    +notifications: ./yawhich-key ./layers/notifications.yaml
-    
-    +apps: ./yawhich-key ./layers/apps.yaml
-    
-    +major: ./yawhich-key --major
-    
-    +windows: ./yawhich-key ./layers/windows.yaml
-    
+  +capture:
+    +screenshot-screen: flameshot gui
+    +record-screen: peek
+    +note: xdg-open https://www.notion.so/49858d5dab304b5ab23d1269e88c7b0d?v=c2000c26c24b48668ffc75e70a81c6e2
+  +event: xdg-open https://calendar.google.com/calendar/r/eventedit?pli=1
+  +toggles:
+    i3-+status-bar: i3-msg bar mode toggle
+    +glava: '[ `pgrep glava` ] && killall glava || sh ~/.config/glava/restart_glava.sh'
+  +files:
+    file-+tree: kitty ranger
+    +config:
+      +dotfiles-rcfiles: $editor ~/dotfiles/rcfiles
+      +yawhich-key-configs:
+        +open-configs: $editor .
+        +diff: $terminal_hold git difftool origin/master
+        +update: $terminal_hold git pull && xdg-open ./CHANGELOG.md
+        +new-layer-for-current-window: $editor ./layers/$window_class.yaml
+  +help:
+    open-+issue-yawhich-key: xdg-open https://github.com/adelin-b/yawhich-key/issues/new
+    +issue-list-yawhich-key: xdg-open https://github.com/adelin-b/yawhich-key/issues
+    # open-+pull-request-yawhich-key: xdg-open https://github.com/adelin-b/yawhich-key/pull/new
+    # +gist-list-of-yawhich-key-layers: xdg-open https://gist.github.com/search?q=filename%3Ayawhich*&ref=searchresults
+  +system:
+    +reboot: systemctl reboot
+    +shutdown: systemctl power-off
+    sus+pend: systemctl suspend
+    +hibernate: sus+pend
+    +lock: ~/dotfiles/scripts/lock.sh
+  +notifications: ./yawhich-key ./layers/notifications.yaml
+  +apps:
+    +file: $filemanager
+    +calculator: rofi -show calc -modi calc -no-show-match -no-sort
+    +music: $music
+    +terminal: $terminal
+    +browser: $browser
+    +process: $terminal --class popup_bashtop bashtop
+    +kill: xkill
+    +editor: $editor
+  +major: ./yawhich-key --major
+  +windows: ./yawhich-key ./layers/windows.yaml
+  +/-search: rofi -auto-select -show-icons -drun-show-actions -combi-modi window,drun,ssh -show combi -modi combi
