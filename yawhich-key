@@ -166,8 +166,10 @@ strip_selection () {
   sed -e 's/​/\+/g' <<< "$1" | sed -e 's/<[^>]*>//g' | sed "s/.* $prefix.//"
 }
 
+# Prevent unbound variable by assigning $1 or defaulting to nothin to $arg1
 arg1="${1:-}"
 
+# Give the name of the current window class
 if [[ "$arg1" == "--major-name" ]]; then
   echo $window_class
   exit 0
@@ -185,6 +187,7 @@ if [[ "$arg1" == "--major" ]]; then
   fi
 fi
 
+# Adding new command to current keymap
 new_command_keymap='+>new-command'
 new_command="$editor $key_map_file"
 
@@ -207,9 +210,12 @@ key_path='keymaps.'
 task_command=
 
 display-yawich-key() {
+
+  # The names of all the commands on each line, the line break at the end is needed to insert the $new_command_keymap
   formated_key_map=$(get_key_names "$key_map_file" "$key_path")"
 $new_command_keymap"
 
+  # Get the current keymap layer name and add the path to the submenus
   layer_name=$(basename "$key_map_file" .yaml | sed "s/\./$prefix/g")
   layer_name="$layer_name${key_path//keymaps./}"
 
@@ -220,17 +226,22 @@ $new_command_keymap"
   # Something weird happen when sorting string with /s, --version-sort is the only option that worked
   selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort --version-sort | eval "$rofi_cmd")
 
+  # strip the markup and prefix from the selection to get the original key name
   selected_stripped=$( strip_selection "$selected")
 
+
+  # Update the path to the current key with the new selected one
   key_path=$key_path$selected_stripped.
 
 
+  # If user want to add a new command instead
   if [[ "$selected_stripped" == "$new_command_keymap" ]]; then
     # line=()
    eval "$new_command"
    exit 0
   fi
 
+  # Get the command string to execute
   task=$(echo "$key_map" | yq r - "$key_path")
 
   # Exit if no task was found
@@ -242,16 +253,18 @@ $new_command_keymap"
   # Get the command associated with the task name
   # Using yq go
   task_command=$(echo "$task" | yq r - "command")
-  echo $task_command
+  echo "$task_command"
 
   # Check whether we need confirmation to run this task
   # Using yq go
   confirm=$(echo "$task" | yq r - "confirm")
 
   if [[ $confirm == "true" ]]; then
+
     # Chain the confirm command before executing the selected command
-    confirm_script=$(${cwd}/yawhich-key ./layers/confirm.yaml)
-    if [ $confirm_script == "yes" ]; then
+    confirm_script=$("${cwd}"/yawhich-key ./layers/confirm.yaml)
+
+    if [ "$confirm_script" == "yes" ]; then
       # Eval the command and display notification if there is errors
       eval "cd $cwd; $task_command" 2> /tmp/yawhich-key-error.log || notify-send yawhich-key "$(cat /tmp/yawhich-key-error.log)"
     fi
@@ -261,8 +274,9 @@ $new_command_keymap"
   fi
 }
 
-while [ ! $task_command ]; do
-display-yawich-key
+# Run yawhich-key throught submenus until a task is found or exit is done
+while [ ! "$task_command" ]; do
+  display-yawich-key
 done
 
 
