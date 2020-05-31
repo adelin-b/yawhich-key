@@ -12,8 +12,8 @@ keymaps:
     +note: xdg-open https://www.notion.so/49858d5dab304b5ab23d1269e88c7b0d?v=c2000c26c24b48668ffc75e70a81c6e2
   +event: xdg-open https://calendar.google.com/calendar/r/eventedit?pli=1
   +toggles:
-    i3-+status-bar: i3-msg bar mode toggle
-    +glava: '[ `pgrep glava` ] && killall glava || sh ~/.config/glava/restart_glava.sh'
+    +status-bar: i3-msg bar mode toggle
+    +music-fancy-visualizer: '[ `pgrep glava` ] && killall glava || sh ~/.config/glava/restart_glava.sh'
   +files:
     file-+tree: kitty ranger
     +config:
@@ -22,7 +22,7 @@ keymaps:
         +open-configs: $editor .
         +diff: $terminal_hold git difftool origin/master
         +update: $terminal_hold git pull && xdg-open ./CHANGELOG.md
-        +new-layer-for-current-window: $editor ./layers/$window_class.yaml
+        +new-layer: $new_layer_command 
   +help:
     open-+issue-yawhich-key: xdg-open https://github.com/adelin-b/yawhich-key/issues/new
     +issue-list-yawhich-key: xdg-open https://github.com/adelin-b/yawhich-key/issues

@@ -1,5 +1,5 @@
 #!/bin/bash
-# set -x
+set -x
 set -e
 set -u
 
@@ -171,21 +171,27 @@ arg1="${1:-}"
 
 # Give the name of the current window class
 if [[ "$arg1" == "--major-name" ]]; then
-  echo $window_class
+  echo "$window_class"
   exit 0
 fi
 
 key_map_file="${arg1:-$cwd/layers/core.yaml}"
 
+# shellcheck disable=2034
+# Adding new layer associated to window class name
+new_layer_command="cp -n ./layers/layer-template.yaml ./layers/$window_class.yaml && $editor ./layers/$window_class.yaml"
+
 if [[ "$arg1" == "--major" ]]; then
   key_map_file="$cwd/layers/$window_class.yaml"
 
   if [[ ! -f $key_map_file ]]; then
-    notify-send "yawhich-key" "No major mode layer for window \"$window_class\", you can create a new one with <b>f c y n</b>"
+    notify-send "yawhich-key" "No major mode layer for \"$window_class\", creating a new one..."
+    eval "cd $cwd; $new_layer_command" 2> /tmp/yawhich-key-error.log || notify-send yawhich-key "$(cat /tmp/yawhich-key-error.log)"
     echo $window_class
     exit 0
   fi
 fi
+
 
 # Adding new command to current keymap
 new_command_keymap='+>new-command'
@@ -212,8 +218,11 @@ task_command=
 display-yawich-key() {
 
   # The names of all the commands on each line, the line break at the end is needed to insert the $new_command_keymap
+  # the zero space width at the end prevent rofi to auto select when opening a keymap or sub-keymap with only one option
   formated_key_map=$(get_key_names "$key_map_file" "$key_path")"
-$new_command_keymap"
+$new_command_keymap
+​ 
+"
 
   # Get the current keymap layer name and add the path to the submenus
   layer_name=$(basename "$key_map_file" .yaml | sed "s/\./$prefix/g")

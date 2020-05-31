@@ -22,8 +22,8 @@ dependencies:
 keymaps:
   +/-search-in-project:
   +!-shell:
-  # Plugins or additional integration
   +diff:
+  # Plugins or additional integration
   +apps:
   # Instant movements in current window
   +jumps:
