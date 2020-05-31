@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.0](https://github.com/adelin-b/yawhich-key/compare/v0.4.0...v0.5.0) (2020-05-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* **layers:** To migrate to the new layer format run this in yawhich-key directory,
+you might have to escape some commands that used to be strings with '' around
+
+Multilines commands migration is not supported (please avoid thoses for now)
+
+```bash
+cd layers;
+for r in *; do
+  mv "$r" "$r.bak"
+  ../scripts/layers-v1-to-v2.sh "$r.bak" > $r
+done
+```
+
+### Features
+
+* **layers:** improve layer format [#14](https://github.com/adelin-b/yawhich-key/issues/14) [#15](https://github.com/adelin-b/yawhich-key/issues/15) ([95dcc58](https://github.com/adelin-b/yawhich-key/commit/95dcc586a2cb1380aecf77472e291663bf559594))
+* **prompt:** display the layer title ([d6325cc](https://github.com/adelin-b/yawhich-key/commit/d6325cc001ada9340b8b1762ccee701c0172bab7))
+
+
+### Bug Fixes
+
+* **new_layer:** add command to create new layer ([6c75119](https://github.com/adelin-b/yawhich-key/commit/6c751190fad46f4cc6ec76b7376fd3192f4d3e31))
+* **prompt:** show prefix between all layers ([81f87b8](https://github.com/adelin-b/yawhich-key/commit/81f87b86943734be30fd09a1f5cd3fc333a261b2))
+
 ## [0.4.0](https://github.com/adelin-b/yawhich-key/compare/v0.3.1...v0.4.0) (2020-05-28)
 
 
