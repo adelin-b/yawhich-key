@@ -1,4 +1,12 @@
-- command: ./yawhich-key ./layers/files.config.yaml
-  name: +config
-- command: kitty ranger
-  name: file-+tree
+name: files.yaml.bak
+
+# Which window class with it match against
+# window_class: any(list(str()), str())
+
+# dependencies: list(include('dependency', required=False))
+
+keymaps:
+    +config: ./yawhich-key ./layers/files.config.yaml
+    
+    file-+tree: kitty ranger
+    

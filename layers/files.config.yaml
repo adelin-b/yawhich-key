@@ -1,4 +1,12 @@
-- command: $editor ~/dotfiles/rcfiles
-  name: +dotfiles rcfiles
-- command: ./yawhich-key ./layers/files.config.yawhich-key.yaml
-  name: +yawhich-key configs
+name: files.config.yaml.bak
+
+# Which window class with it match against
+# window_class: any(list(str()), str())
+
+# dependencies: list(include('dependency', required=False))
+
+keymaps:
+    +dotfiles-rcfiles: $editor ~/dotfiles/rcfiles
+    
+    +yawhich-key-configs: ./yawhich-key ./layers/files.config.yawhich-key.yaml
+    

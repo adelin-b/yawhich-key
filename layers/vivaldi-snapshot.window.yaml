@@ -1,4 +1,12 @@
-- command: xdotool key ctrl+w
-  name: +delete
-- command: xdotool key ctrl+space
-  name: +/ search
+name: vivaldi-snapshot.window.yaml.bak
+
+# Which window class with it match against
+# window_class: any(list(str()), str())
+
+# dependencies: list(include('dependency', required=False))
+
+keymaps:
+    +delete: xdotool key ctrl+w
+    
+    +/-search: xdotool key ctrl+space
+    

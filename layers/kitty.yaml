@@ -1,8 +1,16 @@
-- command: xdotool key ctrl+shift+h h
-  name: +help
-- command: xdotool key ctrl+shift+h slash
-  name: +/ search
-- command: xdotool key ctrl+shift+u
-  name: +insert
-- command: xdotool key ctrl+shift+e
-  name: +url
+name: kitty.yaml.bak
+
+# Which window class with it match against
+# window_class: any(list(str()), str())
+
+# dependencies: list(include('dependency', required=False))
+
+keymaps:
+    +help: xdotool key ctrl+shift+h h
+    
+    +/-search: xdotool key ctrl+shift+h slash
+    
+    +insert: xdotool key ctrl+shift+u
+    
+    +url: xdotool key ctrl+shift+e
+    

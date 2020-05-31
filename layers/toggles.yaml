@@ -1,4 +1,12 @@
-- command: i3-msg bar mode toggle
-  name: i3 +status bar
-- command: '[ `pgrep glava` ] && killall glava || sh ~/.config/glava/restart_glava.sh'
-  name: +glava
+name: toggles.yaml.bak
+
+# Which window class with it match against
+# window_class: any(list(str()), str())
+
+# dependencies: list(include('dependency', required=False))
+
+keymaps:
+    i3-+status-bar: i3-msg bar mode toggle
+    
+    +glava: "[ `pgrep glava` ] && killall glava || sh ~/.config/glava/restart_glava.sh"
+    

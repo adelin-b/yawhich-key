@@ -1,21 +1,28 @@
-- command: rofi -auto-select -show-icons -drun-show-actions -combi-modi window,drun,ssh
-    -show combi -modi combi
-  name: +/ search
-- command: ./yawhich-key ./layers/capture.yaml
-  name: +capture
-- command: ./yawhich-key ./layers/toggles.yaml
-  name: +toggles
-- command: ./yawhich-key ./layers/files.yaml
-  name: +files
-- command: ./yawhich-key ./layers/help.yaml
-  name: +help
-- command: ./yawhich-key ./layers/system.yaml
-  name: +system
-- command: ./yawhich-key ./layers/notifications.yaml
-  name: +notifications
-- command: ./yawhich-key ./layers/apps.yaml
-  name: +apps
-- command: ./yawhich-key --major
-  name: +major
-- command: ./yawhich-key ./layers/windows.yaml
-  name: +windows
+name: core.yaml.bak
+
+# Which window class with it match against
+# window_class: any(list(str()), str())
+
+# dependencies: list(include('dependency', required=False))
+
+keymaps:
+    +/-search: rofi -auto-select -show-icons -drun-show-actions -combi-modi window,drun,ssh -show combi -modi combi
+    
+    +capture: ./yawhich-key ./layers/capture.yaml
+    
+    +toggles: ./yawhich-key ./layers/toggles.yaml
+    
+    +files: ./yawhich-key ./layers/files.yaml
+    
+    +help: ./yawhich-key ./layers/help.yaml
+    
+    +system: ./yawhich-key ./layers/system.yaml
+    
+    +notifications: ./yawhich-key ./layers/notifications.yaml
+    
+    +apps: ./yawhich-key ./layers/apps.yaml
+    
+    +major: ./yawhich-key --major
+    
+    +windows: ./yawhich-key ./layers/windows.yaml
+    

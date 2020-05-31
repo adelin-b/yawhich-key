@@ -181,68 +181,75 @@ add_new="- command: $editor $key_map_file
   name: +> new command"
 
 # Get keymap file from first argument or use the core one
-key_map=$(echo "$add_new" | cat "$key_map_file" - )
+# key_map=$(echo "$add_new" | cat "$key_map_file" - )
+key_map=$(cat "$key_map_file")
+get_key_names () {
+  yq r "$1" "$2" |\
+  yq --printMode pv r - "**" --stripComments |\
+  grep -v '.*:$' |\
+  sed -e 's/[\.:].*//' |\
+  uniq
+}
+
 
 # notify-send "$key_map"
 # Pass key_map to rofi, and get the output as the selected option
-# Using jq json
-# formated_key_map=$(echo "$key_map" | jq -j 'map(.name) | join("\n")')
-# Using yq python
-# formated_key_map=$(echo "$key_map" | yq -j 'map(.name) | join("\n")')
 # Using yq go
-formated_key_map=$(echo "$key_map" | yq r - .name)
+# formated_key_map=$(echo "$key_map" | yq r - .name)
+
+key_path='keymaps.'
+task_command=
+menu() {
+  formated_key_map=$(get_key_names "$key_map_file" "$key_path")
+
+  layer_name=$(basename "$key_map_file" .yaml | sed "s/\./$prefix/g")
+  layer_name="$layer_name${key_path//keymaps./}"
 
 
-layer_name=$(basename "$key_map_file" .yaml | sed "s/\./$prefix/g")
+  # Create rofi command that will be launched with the menu
+  rofi_cmd="rofi -dmenu -filter '​' $rofi_options -p $layer_name  -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -markup-rows -theme ${cwd}/themes/dark-which-key"
 
+  # Something weird happen when sorting string with /s, --version-sort is the only option that worked
+  selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort --version-sort | eval "$rofi_cmd")
 
-# Create rofi command that will be launched with the menu
-rofi_cmd="rofi -dmenu -filter '​' $rofi_options -p $layer_name  -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -markup-rows -theme ${cwd}/themes/dark-which-key"
+  selected_stripped=$( strip_selection "$selected")
 
+  key_path=$key_path$selected_stripped.
+  # Using yq go
+  # task=$(echo "$key_map" | yq r - "(**==$selected_stripped)")
+  task=$(echo "$key_map" | yq r - "$key_path")
 
+  # Exit if no task was found
+  if [[ $task == "" ]]; then
+    notify-send "No task defined as '$selected_stripped' within config file."
+    exit 1
+  fi
 
-# Something weird happen when sorting string with /s, --version-sort is the only option that worked
-selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort --version-sort | eval "$rofi_cmd")
+  # Get the command associated with the task name
+  # Using yq go
+  task_command=$(echo "$task" | yq r - "command")
+  echo $task_command
 
-selected_stripped=$( strip_selection "$selected")
+  # Check whether we need confirmation to run this task
+  # Using yq go
+  confirm=$(echo "$task" | yq r - "confirm")
 
-# Using jq json
-# task=$(echo "$key_map" | jq ".[] | select(.name == \"$selected_stripped\")")
-# Using yq python
-# task=$(echo "$key_map" | yq ".[] | select(.name == \"$selected_stripped\")")
-# Using yq go
-task=$(echo "$key_map" | yq r - "(**==$selected_stripped)")
-
-# Exit if no task was found
-if [[ $task == "" ]]; then
-  notify-send "No task defined as '$selected_stripped' within config file."
-  exit 1
-fi
-
-# Get the command associated with the task name
-# Using jq json
-# task_command=$(echo "$task" | jq ".command")
-# Using yq python
-# task_command=$(echo "$task" | yq ".command")
-# Using yq go
-task_command=$(echo "$task" | yq r - "command")
-
-# Check whether we need confirmation to run this task
-# Using jq json
-# confirm=$(echo "$task" | jq ".confirm")
-# Using yq python
-# confirm=$(echo "$task" | yq ".confirm")
-# Using yq go
-confirm=$(echo "$task" | yq r - "confirm")
-
-if [[ $confirm == "true" ]]; then
-  # Chain the confirm command before executing the selected command
-  confirm_script=$(${cwd}/yawhich-key ./layers/confirm.yaml)
-  if [ $confirm_script == "yes" ]; then
+  if [[ $confirm == "true" ]]; then
+    # Chain the confirm command before executing the selected command
+    confirm_script=$(${cwd}/yawhich-key ./layers/confirm.yaml)
+    if [ $confirm_script == "yes" ]; then
+      # Eval the command and display notification if there is errors
+      eval "cd $cwd; $task_command" 2> /tmp/yawhich-key-error.log || notify-send yawhich-key "$(cat /tmp/yawhich-key-error.log)"
+    fi
+  else
     # Eval the command and display notification if there is errors
     eval "cd $cwd; $task_command" 2> /tmp/yawhich-key-error.log || notify-send yawhich-key "$(cat /tmp/yawhich-key-error.log)"
   fi
-else
-    # Eval the command and display notification if there is errors
-    eval "cd $cwd; $task_command" 2> /tmp/yawhich-key-error.log || notify-send yawhich-key "$(cat /tmp/yawhich-key-error.log)"
-fi
+}
+
+while [ ! $task_command ]; do
+menu
+done
+
+
+

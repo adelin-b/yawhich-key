@@ -1,4 +1,12 @@
-- command: echo yes
-  name: +yes
-- command: echo no
-  name: +no
+name: confirm.yaml.bak
+
+# Which window class with it match against
+# window_class: any(list(str()), str())
+
+# dependencies: list(include('dependency', required=False))
+
+keymaps:
+    +yes: echo yes
+    
+    +no: echo no
+    

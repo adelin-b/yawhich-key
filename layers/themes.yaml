@@ -1,2 +1,10 @@
-- command: gnome-screenshot -a
-  name: +Area screenshot
+name: themes.yaml.bak
+
+# Which window class with it match against
+# window_class: any(list(str()), str())
+
+# dependencies: list(include('dependency', required=False))
+
+keymaps:
+    +Area-screenshot: gnome-screenshot -a
+    

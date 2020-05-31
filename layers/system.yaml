@@ -1,15 +1,22 @@
-- command: systemctl reboot
-  confirm: true
-  name: +reboot
-- command: systemctl power off
-  confirm: true
-  name: +shutdown
-- command: systemctl suspend
-  confirm: true
-  name: sus+pend
-- command: systemctl hibernate
-  confirm: true
-  name: +hibernate
-- command: ~/dotfiles/scripts/lock.sh
-  confirm: true
-  name: +lock
+name: system.yaml.bak
+
+# Which window class with it match against
+# window_class: any(list(str()), str())
+
+# dependencies: list(include('dependency', required=False))
+
+keymaps:
+    true: systemctl reboot
+    
+    systemctl-power-off: +reboot
+    
+    +shutdown: true
+    
+    true: systemctl suspend
+    
+    systemctl-hibernate: sus+pend
+    
+    +hibernate: true
+    
+    true: ~/dotfiles/scripts/lock.sh
+    

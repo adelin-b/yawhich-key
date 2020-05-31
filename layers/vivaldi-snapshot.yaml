@@ -1,14 +1,22 @@
-- command: xdotool key ctrl+shift+k
-  name: +capture
-- command: xdotool key ctrl+space
-  name: +/ search
-- command: xdotool key ctrl+d
-  name: +bookmarks-current
-- command: xdotool key ctrl+b
-  name: open-+Bookmarks
-- command: ''
-  name: +yanks (todo)
-- command: ''
-  name: +panel (todo)
-- command: ./yawhich-key ./layers/vivaldi-snapshot.window.yaml
-  name: +window
+name: vivaldi-snapshot.yaml.bak
+
+# Which window class with it match against
+# window_class: any(list(str()), str())
+
+# dependencies: list(include('dependency', required=False))
+
+keymaps:
+    +capture: xdotool key ctrl+shift+k
+    
+    +/-search: xdotool key ctrl+space
+    
+    +bookmarks-current: xdotool key ctrl+d
+    
+    open-+Bookmarks: xdotool key ctrl+b
+    
+    +yanks-(todo): 
+    
+    +panel-(todo): 
+    
+    +window: ./yawhich-key ./layers/vivaldi-snapshot.window.yaml
+    

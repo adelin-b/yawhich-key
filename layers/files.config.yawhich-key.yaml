@@ -1,8 +1,16 @@
-- command: $editor .
-  name: +open-configs
-- command: $terminal_hold git difftool origin/master
-  name: +diff
-- command: $terminal_hold git pull && xdg-open ./CHANGELOG.md
-  name: +update
-- command: $editor ./layers/$window_class.yaml
-  name: +new-layer-for-current-window
+name: files.config.yawhich-key.yaml.bak
+
+# Which window class with it match against
+# window_class: any(list(str()), str())
+
+# dependencies: list(include('dependency', required=False))
+
+keymaps:
+    +open-configs: $editor .
+    
+    +diff: $terminal_hold git difftool origin/master
+    
+    +update: $terminal_hold git pull && xdg-open ./CHANGELOG.md
+    
+    +new-layer-for-current-window: $editor ./layers/$window_class.yaml
+    

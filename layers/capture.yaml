@@ -1,8 +1,16 @@
-- command: flameshot gui
-  name: +screenshot screen
-- command: peek
-  name: +record screen
-- command: xdg-open https://www.notion.so/49858d5dab304b5ab23d1269e88c7b0d?v=c2000c26c24b48668ffc75e70a81c6e2
-  name: +note
-- command: xdg-open https://calendar.google.com/calendar/r/eventedit?pli=1
-  name: +event
+name: capture.yaml.bak
+
+# Which window class with it match against
+# window_class: any(list(str()), str())
+
+# dependencies: list(include('dependency', required=False))
+
+keymaps:
+    +screenshot-screen: flameshot gui
+    
+    +record-screen: peek
+    
+    +note: xdg-open https://www.notion.so/49858d5dab304b5ab23d1269e88c7b0d?v=c2000c26c24b48668ffc75e70a81c6e2
+    
+    +event: xdg-open https://calendar.google.com/calendar/r/eventedit?pli=1
+    
