@@ -6,6 +6,8 @@ An universal which-key shortcut displayer inspired from emacs-which-key
 
 ![preview](./docs/assets/yawhich-key.gif)
 
+(of course yawich-key is unixporn compliant and can be customized through pywal, themer, env variable)
+
 # Get started
 
 ### Shortcuts
@@ -34,6 +36,8 @@ commands:
   editor: code
   terminal: kitty
   terminal_hold: kitty --hold
+  music: spotify
+  file_manager: dolphin
   browser: vivaldi-snapshot
 property:
   # Here you can override default options (man rofi)
@@ -45,16 +49,36 @@ property:
 ###  Minor mode (general short cut map)
 `./yawhich-key`
 
-Configure your custom commands inside `./layers/core.yaml` (core.yaml is the entry point by default) and chain them by calling `./yawhich-key layers/custom-layer.yaml`
-(of course yawich-key is unixporn compliant and can be customized through pywal, themer, env variable)
+Configure your custom commands inside `./layers/core.yaml` (core.yaml is the entry point by default) and chain them by 
+- calling `./yawhich-key layers/custom-layer.yaml` if you want to separate the files
+- nesting 
+
 ```yaml
 // foo.yaml
-- command: foo # the command to be executed
-  name: +foo # the '+' char indicate which key to use in the menu
-  confirm: true # will ask for confirmation
+name: core.yaml.bak
 
-- command: ./yawhich-key layers/barmenu.yaml # to nest menu just call the appropriate layer
-  name: +barmenu
+# Which window class with it match against (not used yet)
+# window_class: any(list(str()), str())
+
+# dependencies: (not used yet)
+
+keymaps:
+    
+    +apps: # it can be nested
+        +file: $file_manager
+        +calculator: rofi -show calc -modi calc -no-show-match -no-sort
+        +music: $music
+        +terminal: $terminal
+        +browser: $browser
+        +process: $terminal --class popup_bashtop bashtop
+        +kill: xkill
+        +editor: $editor
+    +files: ./yawhich-key ./layers/files.yaml
+    +toggles: ./yawhich-key ./layers/toggles.yaml # another layer can be calledinstead of nesting
+    
+    +/-search: rofi -auto-select -show-icons -drun-show-actions -combi-modi window,drun,ssh -show combi -modi combi
+
+
 ```
 
 
@@ -62,7 +86,7 @@ Configure your custom commands inside `./layers/core.yaml` (core.yaml is the ent
 `./yawhich-key --major` will search the matching currently focused window WM_CLASS in `layers/wm_class.yaml`
 If nothing is found it will `notifiy-send an error`
 
-
+Soon to be defined by the `window_class:` key in layers
 
 # Limitation
 - Not yet in config folder

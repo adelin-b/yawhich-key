@@ -8,5 +8,5 @@ name: toggles.yaml.bak
 keymaps:
     i3-+status-bar: i3-msg bar mode toggle
     
-    +glava: "[ `pgrep glava` ] && killall glava || sh ~/.config/glava/restart_glava.sh"
+    +glava: '[ `pgrep glava` ] && killall glava || sh ~/.config/glava/restart_glava.sh'
     

@@ -11,12 +11,18 @@ config_dir=${XDG_CONFIG_HOME:=$HOME/.config/yawhich-key}
 
 
 # This can be using in the command evaluation
+# shellcheck disable=2034
 terminal=$( yq r - commands.terminal < "$config_dir/config.yaml" )
+# shellcheck disable=2034
 terminal_hold=$( yq r - commands.terminal_hold < "$config_dir/config.yaml" )
+# shellcheck disable=2034
+file_manager=$( yq r - commands.file_manager < "$config_dir/config.yaml" )
+# shellcheck disable=2034
+music=$( yq r - commands.music < "$config_dir/config.yaml" )
+# shellcheck disable=2034
 editor=$( yq r - commands.editor < "$config_dir/config.yaml" )
+# shellcheck disable=2034
 rofi_options=$( yq r - property.rofi_options < "$config_dir/config.yaml" )
-# shellcheck disable=2034
-# shellcheck disable=2034
 
 echoerr() { echo "$@" 1>&2; }
 if [ -z "${BROWSER-}" ]; then
