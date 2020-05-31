@@ -22,6 +22,8 @@ music=$( yq r - commands.music < "$config_dir/config.yaml" )
 # shellcheck disable=2034
 editor=$( yq r - commands.editor < "$config_dir/config.yaml" )
 # shellcheck disable=2034
+editor_goto_line=$( yq r - commands.editor_goto_line < "$config_dir/config.yaml" )
+# shellcheck disable=2034
 rofi_options=$( yq r - property.rofi_options < "$config_dir/config.yaml" )
 
 echoerr() { echo "$@" 1>&2; }
@@ -183,8 +185,8 @@ if [[ "$arg1" == "--major" ]]; then
   fi
 fi
 
-add_new="- command: $editor $key_map_file
-  name: +> new command"
+new_command_keymap='+>new-command'
+new_command="$editor $key_map_file"
 
 # Get keymap file from first argument or use the core one
 # key_map=$(echo "$add_new" | cat "$key_map_file" - )
@@ -198,15 +200,15 @@ get_key_names () {
 }
 
 
-# notify-send "$key_map"
-# Pass key_map to rofi, and get the output as the selected option
-# Using yq go
-# formated_key_map=$(echo "$key_map" | yq r - .name)
-
+# Path to follow to get the current map or submap
 key_path='keymaps.'
+
+# Will be filled with the command to execute
 task_command=
-menu() {
-  formated_key_map=$(get_key_names "$key_map_file" "$key_path")
+
+display-yawich-key() {
+  formated_key_map=$(get_key_names "$key_map_file" "$key_path")"
+$new_command_keymap"
 
   layer_name=$(basename "$key_map_file" .yaml | sed "s/\./$prefix/g")
   layer_name="$layer_name${key_path//keymaps./}"
@@ -221,8 +223,14 @@ menu() {
   selected_stripped=$( strip_selection "$selected")
 
   key_path=$key_path$selected_stripped.
-  # Using yq go
-  # task=$(echo "$key_map" | yq r - "(**==$selected_stripped)")
+
+
+  if [[ "$selected_stripped" == "$new_command_keymap" ]]; then
+    # line=()
+   eval "$new_command"
+   exit 0
+  fi
+
   task=$(echo "$key_map" | yq r - "$key_path")
 
   # Exit if no task was found
@@ -254,7 +262,7 @@ menu() {
 }
 
 while [ ! $task_command ]; do
-menu
+display-yawich-key
 done
 
 
