@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+# set -x
 set -e
 set -u
 
@@ -25,6 +25,8 @@ editor=$( yq r - commands.editor < "$config_dir/config.yaml" )
 editor_goto_line=$( yq r - commands.editor_goto_line < "$config_dir/config.yaml" )
 # shellcheck disable=2034
 rofi_options=$( yq r - property.rofi_options < "$config_dir/config.yaml" )
+color_primary=$( yq r - property.color_primary < "$config_dir/config.yaml" )
+color_secondary=$( yq r - property.color_secondary < "$config_dir/config.yaml" )
 
 echoerr() { echo "$@" 1>&2; }
 if [ -z "${BROWSER-}" ]; then
@@ -77,6 +79,13 @@ fi
 function get_color  {
   color=
 
+  if [[ "$1" == "primary" ]]; then
+    color=$color_primary
+  fi
+  if [[ "$1" == "secondary" ]]; then
+    color=$color_secondary
+  fi
+
   if [[ ! $color ]]; then
     # Handle themer color with argument name (primary, secondary, ect)
     color=$(grep "$1" "$YAWHICHKEY_THEMER_FILE" |  sed 's/.*#/#/'| sed "s/'//")
@@ -85,10 +94,10 @@ function get_color  {
   if [[ ! $color ]]; then
     # Handle pywal color
     if [[ "$1" == "primary" ]]; then
-      color=$(shuf -n 1 "$YAWHICHKEY_PYWAL_FILE")
+      color=$(head -n 1 "$YAWHICHKEY_PYWAL_FILE")
     fi
     if [[ "$1" == "secondary" ]]; then
-      color=$(shuf -n 1 "$YAWHICHKEY_PYWAL_FILE")
+      color=$(head -n 2 "$YAWHICHKEY_PYWAL_FILE")
     fi
   fi
 
