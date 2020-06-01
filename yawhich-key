@@ -5,9 +5,16 @@ set -u
 
 # Get script directory
 cwd=$(echo $(dirname $0))
+install_dir=$(echo $(dirname $0))
 
 # User config
 config_dir=${XDG_CONFIG_HOME:=$HOME/.config/yawhich-key}
+
+if [[ -e $config_dir ]]; then
+ cwd=$config_dir
+else
+  notify-send "yawhich-key" "No config folder detected, you should create one"
+fi
 
 
 # This can be using in the command evaluation
@@ -27,6 +34,8 @@ editor_goto_line=$( yq r - commands.editor_goto_line < "$config_dir/config.yaml"
 rofi_options=$( yq r - property.rofi_options < "$config_dir/config.yaml" )
 color_primary=$( yq r - property.color_primary < "$config_dir/config.yaml" )
 color_secondary=$( yq r - property.color_secondary < "$config_dir/config.yaml" )
+theme=$( yq r - property.theme < "$config_dir/config.yaml" || echo "$install_dir/themes/dark-which-key")
+layers=$( yq r - commands.layers < "$config_dir/config.yaml" )
 
 echoerr() { echo "$@" 1>&2; }
 if [ -z "${BROWSER-}" ]; then
@@ -228,18 +237,20 @@ display-yawich-key() {
 
   # The names of all the commands on each line, the line break at the end is needed to insert the $new_command_keymap
   # the zero space width at the end prevent rofi to auto select when opening a keymap or sub-keymap with only one option
-  formated_key_map=$(get_key_names "$key_map_file" "$key_path")"
+  formated_key_map=$(get_key_names "$key_map_content" "$key_path")"
 $new_command_keymap
 ​ 
 "
+  echo "$key_map_content"
+  # echo "$formated_key_map"
 
   # Get the current keymap layer name and add the path to the submenus
-  layer_name=$(basename "$key_map_file" .yaml | sed "s/\./$prefix/g")
+  layer_name=$(basename "$key_map_filename" .yaml | sed "s/\./$prefix/g")
   layer_name="$layer_name${key_path//keymaps./}"
 
 
   # Create rofi command that will be launched with the menu
-  rofi_cmd="rofi -dmenu -filter '​' $rofi_options -p $layer_name  -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -markup-rows -theme ${cwd}/themes/dark-which-key"
+  rofi_cmd="rofi -dmenu -filter '​' $rofi_options -p $layer_name  -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -markup-rows -theme $config_dir/$theme"
 
   # Something weird happen when sorting string with /s, --version-sort is the only option that worked
   selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort --version-sort | eval "$rofi_cmd")
@@ -280,7 +291,7 @@ $new_command_keymap
   if [[ $confirm == "true" ]]; then
 
     # Chain the confirm command before executing the selected command
-    confirm_script=$("${cwd}"/yawhich-key ./layers/confirm.yaml)
+    confirm_script=$("${cwd}"/yawhich-key "$cwd/layers/confirm.yaml")
 
     if [ "$confirm_script" == "yes" ]; then
       # Eval the command and display notification if there is errors
