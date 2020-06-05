@@ -1,8 +1,12 @@
-# Changelog
-
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+## [](https://github.com/adelin-b/yawhich-key/compare/v0.6.0...v) (2020-05-31)
 
 ## [0.6.0](https://github.com/adelin-b/yawhich-key/compare/v0.5.0...v0.6.0) (2020-05-31)
+
+
+### Features
+
+* **layers:** auto create layer and edit it when --major is called ([d5697d3](https://github.com/adelin-b/yawhich-key/commit/d5697d363d32b55cc37286638f48398edc57fc64))
+* **new_command:** add keymap everywhere to add custom command to layer ([d6b9ef3](https://github.com/adelin-b/yawhich-key/commit/d6b9ef3c7bf95b148f3991685199abbabf76f9c2))
 
 ## [0.5.0](https://github.com/adelin-b/yawhich-key/compare/v0.4.0...v0.5.0) (2020-05-31)
 
@@ -24,6 +28,7 @@ done
 
 ### Features
 
+* **config:** add new config options ([4a9ee96](https://github.com/adelin-b/yawhich-key/commit/4a9ee9658e97105d13c0a01b40d9fdb7f747b32a))
 * **layers:** improve layer format [#14](https://github.com/adelin-b/yawhich-key/issues/14) [#15](https://github.com/adelin-b/yawhich-key/issues/15) ([95dcc58](https://github.com/adelin-b/yawhich-key/commit/95dcc586a2cb1380aecf77472e291663bf559594))
 * **prompt:** display the layer title ([d6325cc](https://github.com/adelin-b/yawhich-key/commit/d6325cc001ada9340b8b1762ccee701c0172bab7))
 
@@ -38,7 +43,7 @@ done
 
 ### Features
 
-* **config:** add config file handling ([b2513a3](https://github.com/adelin-b/yawhich-key/commit/b2513a3c5ecdc5a14af3e2a9549a3ef51cf002e6))
+* **config:** add config file handling ([7fb53c7](https://github.com/adelin-b/yawhich-key/commit/7fb53c7d5f029e07f93cd7d049e80b1576d06f0c))
 
 ### [0.3.1](https://github.com/adelin-b/yawhich-key/compare/v0.3.0...v0.3.1) (2020-05-28)
 
@@ -91,3 +96,4 @@ done
 * **layers:** add basic layers ([6268793](https://github.com/adelin-b/yawhich-key/commit/62687937de3256980822974c70a7f80561ab3ac2))
 * **themes:** add default theme ([fba8062](https://github.com/adelin-b/yawhich-key/commit/fba8062daad7e4355c1ee9965cf49e006e6b968c))
 * **yawhich-key:** show which key popup using rofi ([9175af6](https://github.com/adelin-b/yawhich-key/commit/9175af68ecab08bef0a54d31e3ac41e29089da4d))
+
