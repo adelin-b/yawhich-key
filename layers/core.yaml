@@ -10,9 +10,9 @@ keymaps:
     +screenshot-screen: flameshot gui
     +record-screen: peek
     +note: xdg-open https://www.notion.so/49858d5dab304b5ab23d1269e88c7b0d?v=c2000c26c24b48668ffc75e70a81c6e2
-  +event: xdg-open https://calendar.google.com/calendar/r/eventedit?pli=1
+    +event: xdg-open https://calendar.google.com/calendar/r/eventedit?pli=1
+    +ocr: ~/dotfiles/scripts/capture/ocr
   +toggles:
-    +status-bar: i3-msg bar mode toggle
     +music-fancy-visualizer: '[ `pgrep glava` ] && killall glava || sh ~/.config/glava/restart_glava.sh'
   +files:
     file-+tree: kitty ranger
@@ -44,6 +44,6 @@ keymaps:
     +process: $terminal --class popup_bashtop bashtop
     +kill: xkill
     +editor: $editor
-  +major: ./yawhich-key --major
-  +windows: ./yawhich-key ./layers/windows.yaml
+  +major: yawhich-key --major
+  # +windows: ./yawhich-key ./layers/windows.yaml
   +/-search: rofi -auto-select -show-icons -drun-show-actions -combi-modi window,drun,ssh -show combi -modi combi

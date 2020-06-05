@@ -1,19 +1,117 @@
-name: vivaldi-snapshot.yaml.bak
+#
+# This template is just a general guideline on how to set up a new layers
+# Fill it if it fit the descriptions so it will stay coherent which other applications.
+#
+# Leave the keymaps that are unused but could exist in an finished version, empty keys are not displayed in yawhich-key
+#
+# Do not hesitate to do pull request if you have additional ideas
+#
+#
+
+name: vivaldi
 
 # Which window class with it match against
-# window_class: any(list(str()), str())
+window_class:
+  - vivaldi
+  - vivaldi-snapshot
 
-# dependencies: list(include('dependency', required=False))
+dependencies:
+  # The command to test if it exist or not
+  - command:
+  # How to install this dependency
+  - install:
 
 keymaps:
-    +capture: xdotool key ctrl+shift+k
+  +capture: xdotool key ctrl+shift+k
+  # +/-search: xdotool key ctrl+space
+  +bookmarks-current: xdotool key ctrl+d
+  open-+Bookmarks: xdotool key ctrl+b
+  +yanks-(todo):
+  +panel-(todo):
+  +window:
+    +delete: xdotool key ctrl+w
     +/-search: xdotool key ctrl+space
-    +bookmarks-current: xdotool key ctrl+d
-    open-+Bookmarks: xdotool key ctrl+b
-    +yanks-(todo): 
-    +panel-(todo): 
-    +window:
-      +delete: xdotool key ctrl+w
-      
-      +/-search: xdotool key ctrl+space
-    
+
+  +/-search-in-vivaldi: xdotool key F2
+  # +!-shell:
+  # +diff:
+  # Plugins or additional integration
+  +apps:
+    +process: xdotool key shift+Escape
+  # Instant movements in current window
+  # +jumps:
+  # Clipboard or temporary save/copy/paste functions
+  +yanks/clipboard:
+  # Quiting functionalities
+  +quit:
+    +quit: xdotool key ctrl+q
+    +restart: xdotool key ctrl+l && xdotool type 'chrome://restart' && xdotool key KP_Enter
+
+  # Files
+  # TODO duplaction of files key when multiples submenus
+  +files:
+    # TODO not working yet
+    +panel: 'xdotool key ctrl+l && xdotool type "Focus Panel Bar" && xdotool key Down && xdotool key KP_Enter'
+    +bookmarks: 'xdotool key ctrl+l && xdotool type "Focus Bookmarks Bar" && xdotool key Down && xdotool key KP_Enter'
+    +tab: 'xdotool key ctrl+l && xdotool type "Focus Tab Bar" && xdotool key Down && xdotool key KP_Enter'
+  #   +new:
+  #   +open:
+  #   +copy:
+  #   # configs of the application
+  #   +config:
+  #     # Update page / command to update application
+  #     +update:
+  #     # Show difference with previous version / changelog
+  #     +diff/changelog:
+  # Search
+  +search:
+    +web:
+    +project: xdotool key F2
+    +buffers/windows: xdotool key ctrl+f
+    +tabs:
+  +help:
+    +layers:
+    +key-shortcuts:
+    +manual-search:
+    +news:
+    show-issues:
+    report-+Issue:
+  # Insert (snippets, type of data, templates)
+  +insert:
+    +snippets:
+    +password/secrets:
+  +compile/comments:
+    +make:
+    +Compile:
+    +recompile:
+    +toggle-comment:
+    comment-+line:
+    comment-+paragraph:
+    cop+y-comment-line:
+  +windows:
+    +k-focus-top:
+    +K-move-top:
+    +h-focus-left:
+    +H-move-left:
+    +j-focus-bottom:
+    +J-move-bottom:
+    +l-focus-right:
+    +L-move-right:
+    +delete:
+    +maximize:
+    +u-reopen-last:
+    +vertical-split:
+    +centered/distraction-free:
+    +popup:
+    horizontal-+split:
+  # ui panels related toggles, status displays
+  +toggles:
+  # Theme switchings related
+  +Theme:
+    +select:
+    +next:
+    +random:
+  # git/versions control
+  +git:
+  # project/workspaces
+  +project:

@@ -1,9 +1,12 @@
-name: kitty.yaml.bak
+name: kitty
 
-# Which window class with it match against
-# window_class: any(list(str()), str())
 
-# dependencies: list(include('dependency', required=False))
+window_class:
+  - kitty
+
+dependencies:
+  # The command to test if it exist or not
+  - command: kitty
 
 keymaps:
     +help: xdotool key ctrl+shift+h h

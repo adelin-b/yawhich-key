@@ -1,0 +1,119 @@
+#
+# This template is just a general guideline on how to set up a new layers
+# Fill it if it fit the descriptions so it will stay coherent which other applications.
+#
+# Leave the keymaps that are unused but could exist in an finished version, empty keys are not displayed in yawhich-key
+#
+# Do not hesitate to do pull request if you have additional ideas
+#
+#
+
+name: i3
+
+# Which window class with it match against
+window_class:
+
+dependencies:
+  # The command to test if it exist or not
+  - command: i3
+
+keymaps:
+  # +/-search-in-project:
+  # +!-shell:
+  # +diff:
+  # # Plugins or additional integration
+  # +apps:
+  # # Instant movements in current window
+  # +jumps:
+  # # Clipboard or temporary save/copy/paste functions
+  # +errors:
+  #   +next:
+  #   +previous:
+  #   +.transient-state:
+  # +yanks/clipboard:
+  # # Quiting functionalities
+  # +quit:
+  #   +quit:
+  #   +Q-kill:
+  #   +restart:
+  # # Files
+  # +files:
+  #   +new:
+  #   +open:
+  #   +copy:
+  #   # configs of the application
+  #   +config:
+  #     # Update page / command to update application
+  #     +update:
+  #     # Show difference with previous version / changelog
+  #     +diff/changelog:
+  # # Search
+  # +search:
+  #   +web:
+  #   +project:
+  #   +buffers/windows:
+  #   +tabs:
+  # +help:
+  #   +layers:
+  #   +key-shortcuts:
+  #   +manual-search:
+  #   +news:
+  #   show-issues:
+  #   report-+Issue:
+  # # Insert (snippets, type of data, templates)
+  # +insert:
+  #   +snippets:
+  #   +password/secrets:
+  # +compile/comments:
+  #   +make:
+  #   +Compile:
+  #   +recompile:
+  #   +toggle-comment:
+  #   comment-+line:
+  #   comment-+paragraph:
+  #   cop+y-comment-line:
+  +layout:
+    +tabbed: i3-msg layout tabbed
+    +stacking: i3-msg layout stacking
+    split-+next: i3-msg layout toggle split
+  wor+kspaces:
+    +k-focus-top: i3-msg focus workspace up
+    +K-move-top: i3-msg move workspace to output up
+    +h-focus-left: i3-msg focus left
+    +H-move-left: i3-msg move workspace to output left
+    +j-focus-bottom: i3-msg focus down
+    +J-move-bottom: i3-msg move workspace to output down
+    +l-focus-right: i3-msg focus right
+    +L-move-right: i3-msg move workspace to output right
+  +windows:
+    +k-focus-top: i3-msg focus up
+    +K-move-top: i3-msg move up
+    +h-focus-left: i3-msg focus left
+    +H-move-left: i3-msg move left
+    +j-focus-bottom: i3-msg focus down
+    +J-move-bottom: i3-msg move down
+    +l-focus-right: i3-msg focus right
+    +L-move-right: i3-msg move right
+    +delete: i3-msg kill
+    +maximize: i3-msg fullscreen
+    +u-reopen-last:
+    # In i3 vertical and horizontal split namings are inversed compared to vim
+    +vertical-split: i3-msg split h
+    horizontal-+split: i3-msg split v
+    +centered/distraction-free:
+    +popup-focus: i3-msg focus mode_toggle
+    +Popup-toggle: i3-msg floating toggle
+  # ui panels related toggles, status displays
+  +toggles: 
+     +status: i3-msg bar mode toggle
+     +borders: ~/dotfiles/scripts/i3/border.sh
+     +music-fancy-visualizer: '[ `pgrep glava` ] && killall glava || sh ~/.config/glava/restart_glava.sh'
+  # Theme switchings related
+  +Theme:
+    +select: ~/dotfiles/scripts/i3/wallpapers.sh && ~/dotfiles/scripts/i3/auto-themer.sh 
+    +random: ~/dotfiles/scripts/i3/wallapers-random.sh && ~/dotfiles/scripts/i3/auto-themer.sh
+    +next:
+  # git/versions control
+  +git:
+  # project/workspaces
+  +project:

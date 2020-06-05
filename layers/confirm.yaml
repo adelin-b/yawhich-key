@@ -1,4 +1,4 @@
-name: confirm.yaml.bak
+name: confirm
 
 # Which window class with it match against
 # window_class: any(list(str()), str())
