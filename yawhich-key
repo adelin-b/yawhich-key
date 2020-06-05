@@ -193,16 +193,16 @@ if [[ "$arg1" == "--major-name" ]]; then
   exit 0
 fi
 
-key_map_file="${arg1:-$cwd/layers/core.yaml}"
+key_map_filename="${arg1:-$cwd/layers/core.yaml}"
 
 # shellcheck disable=2034
 # Adding new layer associated to window class name
-new_layer_command="cp -n ./layers/layer-template.yaml ./layers/$window_class.yaml && $editor ./layers/$window_class.yaml"
+new_layer_command="cp -n $cwd/layers/layer-template.yaml $cwd/layers/$window_class.yaml && $editor $cwd/layers/$window_class.yaml"
 
 if [[ "$arg1" == "--major" ]]; then
-  key_map_file="$cwd/layers/$window_class.yaml"
+  key_map_filename="$cwd/layers/$window_class.yaml"
 
-  if [[ ! -f $key_map_file ]]; then
+  if [[ ! -f $key_map_filename ]]; then
     notify-send "yawhich-key" "No major mode layer for \"$window_class\", creating a new one..."
     eval "cd $cwd; $new_layer_command" 2> /tmp/yawhich-key-error.log || notify-send yawhich-key "$(cat /tmp/yawhich-key-error.log)"
     echo $window_class
@@ -213,13 +213,25 @@ fi
 
 # Adding new command to current keymap
 new_command_keymap='+>new-command'
-new_command="$editor $key_map_file"
+new_command="$editor $key_map_filename"
 
+if [[ ! "$arg1" == "--major" ]]; then
+  # coretmp=$(mktemp)
+  # core=$(yq r  --printMode pv ./layers/core.yaml "**" > $coretmp)
+  #
+  # i3tmp=$(mktemp)
+  # i3=$(yq r  --printMode pv ./layers/core-i3.yaml "**" > $i3tmp)
+  # key_map_content="$(yq m -a $i3tmp $coretmp)"
+  key_map_content="$(yq m -a $key_map_filename $cwd/layers/core.yaml)"
+else
+  key_map_content="$(cat "$key_map_filename" )"
+fi
 # Get keymap file from first argument or use the core one
-# key_map=$(echo "$add_new" | cat "$key_map_file" - )
-key_map=$(cat "$key_map_file")
+# key_map=$(echo "$add_new" | cat "$key_map_filename" - )
+# key_map_content=$(cat "$key_map_filename")
 get_key_names () {
-  yq r "$1" "$2" |\
+  # echo "get_key_names"
+  echo "$1" | yq r - "$2" |\
   yq --printMode pv r - "**" --stripComments |\
   grep -v '.*:$' |\
   sed -e 's/[\.:].*//' |\
@@ -271,7 +283,7 @@ $new_command_keymap
   fi
 
   # Get the command string to execute
-  task=$(echo "$key_map" | yq r - "$key_path")
+  task=$(echo "$key_map_content" | yq r - "$key_path")
 
   # Exit if no task was found
   if [[ $task == "" ]]; then
