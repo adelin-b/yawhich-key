@@ -265,7 +265,7 @@ $new_command_keymap
   rofi_cmd="rofi -dmenu -filter '​' $rofi_options -p $layer_name  -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -markup-rows -theme $theme"
 
   # Something weird happen when sorting string with /s, --version-sort is the only option that worked
-  selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort --version-sort | eval "$rofi_cmd")
+  selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort --ignore-case --version-sort  | eval "$rofi_cmd")
 
   # strip the markup and prefix from the selection to get the original key name
   selected_stripped=$( strip_selection "$selected")
