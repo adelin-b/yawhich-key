@@ -5,7 +5,7 @@ set -u
 
 # Get script directory
 cwd=$(echo $(dirname $0))
-install_dir=$(echo $(dirname $0))
+# install_dir=$(echo $(dirname $0))
 
 # User config
 config_dir=${XDG_CONFIG_HOME:=$HOME/.config/yawhich-key}
@@ -34,8 +34,8 @@ editor_goto_line=$( yq r - commands.editor_goto_line < "$config_dir/config.yaml"
 rofi_options=$( yq r - property.rofi_options < "$config_dir/config.yaml" )
 color_primary=$( yq r - property.color_primary < "$config_dir/config.yaml" )
 color_secondary=$( yq r - property.color_secondary < "$config_dir/config.yaml" )
-theme=$( yq r - property.theme < "$config_dir/config.yaml" || echo "$install_dir/themes/dark-which-key")
-layers=$( yq r - commands.layers < "$config_dir/config.yaml" )
+theme="$config_dir/$( yq r - property.theme < "$config_dir/config.yaml")"
+layers=$( yq r - property.layers < "$config_dir/config.yaml" )
 
 echoerr() { echo "$@" 1>&2; }
 if [ -z "${BROWSER-}" ]; then
@@ -222,7 +222,7 @@ if [[ ! "$arg1" == "--major" ]]; then
   # i3tmp=$(mktemp)
   # i3=$(yq r  --printMode pv ./layers/core-i3.yaml "**" > $i3tmp)
   # key_map_content="$(yq m -a $i3tmp $coretmp)"
-  key_map_content="$(yq m -a $key_map_filename $cwd/layers/core.yaml)"
+  key_map_content="$(yq m -a $key_map_filename $cwd/layers/core.yaml "$config_dir/$layers")"
 else
   key_map_content="$(cat "$key_map_filename" )"
 fi
@@ -253,7 +253,7 @@ display-yawich-key() {
 $new_command_keymap
 ​ 
 "
-  echo "$key_map_content"
+  # echo "$key_map_content"
   # echo "$formated_key_map"
 
   # Get the current keymap layer name and add the path to the submenus
@@ -262,7 +262,7 @@ $new_command_keymap
 
 
   # Create rofi command that will be launched with the menu
-  rofi_cmd="rofi -dmenu -filter '​' $rofi_options -p $layer_name  -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -markup-rows -theme $config_dir/$theme"
+  rofi_cmd="rofi -dmenu -filter '​' $rofi_options -p $layer_name  -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -markup-rows -theme $theme"
 
   # Something weird happen when sorting string with /s, --version-sort is the only option that worked
   selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort --version-sort | eval "$rofi_cmd")
