@@ -1,4 +1,22 @@
-## [](https://github.com/adelin-b/yawhich-key/compare/v0.6.0...v) (2020-05-31)
+# Changelog
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [0.7.0](https://github.com/adelin-b/yawhich-key/compare/v0.6.0...v0.7.0) (2020-06-06)
+
+
+### Features
+
+* **color:** add color in config ([baa0eb2](https://github.com/adelin-b/yawhich-key/commit/baa0eb2b1307f74169eeae524b0d969710760535))
+* **config:** now load layers and theme from config folder [#5](https://github.com/adelin-b/yawhich-key/issues/5) ([e7fb71f](https://github.com/adelin-b/yawhich-key/commit/e7fb71f434791b9485ea33db6be8e4495b032bed))
+* **layers:** add i3 layer ([0d2b78b](https://github.com/adelin-b/yawhich-key/commit/0d2b78b6852473a7527714ad7f94b30f4eaf7b86))
+* **menu:** show the memu path and use message instead of prompt ([3bf8dc4](https://github.com/adelin-b/yawhich-key/commit/3bf8dc4ca621786a177242c1695fe99ac9d37339))
+
+
+### Bug Fixes
+
+* **sort:** sort by ignoring case ([32dc7c3](https://github.com/adelin-b/yawhich-key/commit/32dc7c3d354d9321bd7abe49c8f03bfafbaeb96a))
+* **theme:** set theme config correctly ([1c1501f](https://github.com/adelin-b/yawhich-key/commit/1c1501fc883cb04fb9d32e8447740841e12e52fa))
 
 ## [0.6.0](https://github.com/adelin-b/yawhich-key/compare/v0.5.0...v0.6.0) (2020-05-31)
 
@@ -96,4 +114,3 @@ done
 * **layers:** add basic layers ([6268793](https://github.com/adelin-b/yawhich-key/commit/62687937de3256980822974c70a7f80561ab3ac2))
 * **themes:** add default theme ([fba8062](https://github.com/adelin-b/yawhich-key/commit/fba8062daad7e4355c1ee9965cf49e006e6b968c))
 * **yawhich-key:** show which key popup using rofi ([9175af6](https://github.com/adelin-b/yawhich-key/commit/9175af68ecab08bef0a54d31e3ac41e29089da4d))
-
