@@ -239,6 +239,56 @@ get_key_names () {
 }
 
 
+set -x
+
+layer_path_to_pango () {
+  # Insert zero-space-width ​ caracter so the highlighted character it will strictly match with the rofi -filter '​'
+  # Also highlight the character key with color, bold, underline
+  match="​\\2"
+
+  if [[ $key_bold == "true" ]]; then
+    match="<b>$match<\/b>"
+  fi
+
+  if [[ $key_underline == "true" ]]; then
+    match="<u>$match<\/u>"
+  fi
+
+  if [[ $key_color ]]; then
+    match="<span foreground=\"$key_color\">$match<\/span>"
+  fi
+
+  prefix_key=""
+  if [[ $with_prefix == "true" ]]; then
+    prefix_key="\\2"
+    if [[ $prefix_bold == "true" ]]; then
+      prefix_key="<b>$prefix<\/b>"
+    fi
+
+    if [[ $prefix_underline == "true" ]]; then
+      prefix_key="<u>$prefix<\/u>"
+    fi
+
+    if [[ $prefix_color ]]; then
+      prefix_key="<span foreground=\"$prefix_color\">$prefix<\/span>"
+    fi
+    prefix_key="$prefix"
+  fi
+
+  before=$(sed -E "s/(.*)\+(.)(.*)/\1/g" <<< "$1")
+  key=$(sed -E "s/(.*)\+(.)(.*)/\2/g" <<< "$1")
+  after=$(sed -E "s/(.*)\+(.)(.*)/\3/g" <<< "$1")
+
+  sed -E "s/(\+.)/<b><u><span foreground=\"$(get_color 'primary')\">\1<\/span><\/u><\/b>/g" <<< "$1" | # Add pango markup around
+    sed "s/\.$//g" |                                                                                   # Remove the dot at the end of the path so it doesnt get replaced
+    sed "s/\./ $prefix /g" |                                                                           # Swap the dots with the prefix
+    sed "s/\+//g"                                                                                      # Remove all the + markers
+  # echo "$before$key$after"
+
+}
+
+
+
 # Path to follow to get the current map or submap
 key_path='keymaps.'
 
@@ -257,12 +307,15 @@ $new_command_keymap
   # echo "$formated_key_map"
 
   # Get the current keymap layer name and add the path to the submenus
-  layer_name=$(basename "$key_map_filename" .yaml | sed "s/\./$prefix/g")
-  layer_name="$layer_name${key_path//keymaps./}"
+  layer_name=$(basename "$key_map_filename" .yaml )
+  layer_name="$layer_name.${key_path//keymaps./}"
+  # layer_name=$(spacei3_which_key_menu_to_pango "$layer_name")
+  # layer_name=$(echo "$layer_name" | sed 's/\.$//' | sed 's/\+./<b>\0<\/b>/g')
+  layer_name="$(layer_path_to_pango "$layer_name")"
 
 
   # Create rofi command that will be launched with the menu
-  rofi_cmd="rofi -dmenu -filter '​' $rofi_options -p $layer_name  -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -markup-rows -theme $theme"
+  rofi_cmd="rofi -dmenu -filter '​' $rofi_options -mesg '$layer_name' -p ''  -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -markup-rows -theme $theme"
 
   # Something weird happen when sorting string with /s, --version-sort is the only option that worked
   selected=$( spacei3_which_key_menu_to_pango "$formated_key_map" | sort --ignore-case --version-sort  | eval "$rofi_cmd")
