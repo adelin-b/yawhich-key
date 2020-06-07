@@ -1,4 +1,4 @@
-name: core.yaml.bak
+name: core.yaml
 
 # Which window class with it match against
 # window_class: any(list(str()), str())
@@ -26,6 +26,7 @@ keymaps:
   +help:
     open-+issue-yawhich-key: xdg-open https://github.com/adelin-b/yawhich-key/issues/new
     +issue-list-yawhich-key: xdg-open https://github.com/adelin-b/yawhich-key/issues
+    show-+Changelog: xdg-open https://github.com/adelin-b/yawhich-key/blob/master/CHANGELOG.md
     # open-+pull-request-yawhich-key: xdg-open https://github.com/adelin-b/yawhich-key/pull/new
     # +gist-list-of-yawhich-key-layers: xdg-open https://gist.github.com/search?q=filename%3Ayawhich*&ref=searchresults
   +system:

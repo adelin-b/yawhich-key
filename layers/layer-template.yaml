@@ -10,7 +10,7 @@
 
 name: # layer name
 
-# Which window class with it match against
+# Which window classes with it match against
 window_class:
 
 dependencies:

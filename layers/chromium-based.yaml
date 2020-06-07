@@ -14,6 +14,7 @@ name: vivaldi
 window_class:
   - vivaldi
   - vivaldi-snapshot
+  - google-chrome
 
 dependencies:
   # The command to test if it exist or not
@@ -22,16 +23,14 @@ dependencies:
   - install:
 
 keymaps:
-  +capture: xdotool key ctrl+shift+k
+  +capture:
+    +notion: xdotool key ctrl+shift+k
+    +screenshot:
+    +bookmark: xdotool key ctrl+d
   # +/-search: xdotool key ctrl+space
-  +bookmarks-current: xdotool key ctrl+d
   open-+Bookmarks: xdotool key ctrl+b
   +yanks-(todo):
   +panel-(todo):
-  +window:
-    +delete: xdotool key ctrl+w
-    +/-search: xdotool key ctrl+space
-
   +/-search-in-vivaldi: xdotool key F2
   # +!-shell:
   # +diff:
@@ -97,11 +96,12 @@ keymaps:
     +J-move-bottom:
     +l-focus-right:
     +L-move-right:
-    +delete:
-    +maximize:
-    +u-reopen-last:
+    +maximize: xdotool key F11
+    +delete: xdotool key ctrl+w
+    +/-search: xdotool key ctrl+space
+    +u-reopen-last: xdotool key ctrl+shift+t
     +vertical-split:
-    +centered/distraction-free:
+    +centered/distraction-free: xdotool key ctrl+F11
     +popup:
     horizontal-+split:
   # ui panels related toggles, status displays

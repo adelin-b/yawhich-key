@@ -1,19 +1,10 @@
 name: kitty
-
-
 window_class:
-  - kitty
-
+- kitty
 dependencies:
-  # The command to test if it exist or not
-  - command: kitty
-
+- command: kitty # The command to test if it exist or not
 keymaps:
-    +help: xdotool key ctrl+shift+h h
-    
-    +/-search: xdotool key ctrl+shift+h slash
-    
-    +insert: xdotool key ctrl+shift+u
-    
-    +url: xdotool key ctrl+shift+e
-    
+  +help: xdotool key ctrl+shift+h h
+  +/-search: xdotool key ctrl+shift+h slash
+  +insert: xdotool key ctrl+shift+u
+  +url: xdotool key ctrl+shift+e

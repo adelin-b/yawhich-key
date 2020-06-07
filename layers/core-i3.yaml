@@ -110,8 +110,9 @@ keymaps:
      +music-fancy-visualizer: '[ `pgrep glava` ] && killall glava || sh ~/.config/glava/restart_glava.sh'
   # Theme switchings related
   +Theme:
-    +select: ~/dotfiles/scripts/i3/wallpapers.sh && ~/dotfiles/scripts/i3/auto-themer.sh 
+    +select: $terminal ~/dotfiles/scripts/i3/wallpapers.sh && ~/dotfiles/scripts/i3/auto-themer.sh 
     +random: ~/dotfiles/scripts/i3/wallapers-random.sh && ~/dotfiles/scripts/i3/auto-themer.sh
+    +Recompute: ~/dotfiles/scripts/i3/auto-themer.sh 
     +next:
   # git/versions control
   +git:
