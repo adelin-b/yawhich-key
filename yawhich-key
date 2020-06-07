@@ -1,5 +1,5 @@
 #!/bin/bash
-# set -x
+set -x
 set -e
 set -u
 
@@ -11,7 +11,7 @@ cwd=$(echo $(dirname $0))
 config_dir=${XDG_CONFIG_HOME:=$HOME/.config/yawhich-key}
 
 if [[ -e $config_dir ]]; then
- cwd=$config_dir
+  cwd=$config_dir
 else
   notify-send "yawhich-key" "No config folder detected, you should create one"
 fi
@@ -195,24 +195,44 @@ fi
 
 key_map_filename="${arg1:-$cwd/layers/core.yaml}"
 
-# shellcheck disable=2034
-# Adding new layer associated to window class name
-new_layer_command="cp -n $cwd/layers/layer-template.yaml $cwd/layers/$window_class.yaml && $editor $cwd/layers/$window_class.yaml"
 
 if [[ "$arg1" == "--major" ]]; then
   key_map_filename="$cwd/layers/$window_class.yaml"
+  layer_file_that_use_window_class=
 
-  if [[ ! -f $key_map_filename ]]; then
-    notify-send "yawhich-key" "No major mode layer for \"$window_class\", creating a new one..."
-    eval "cd $cwd; $new_layer_command" 2> /tmp/yawhich-key-error.log || notify-send yawhich-key "$(cat /tmp/yawhich-key-error.log)"
-    echo $window_class
-    exit 0
-  fi
+
+for file in "$config_dir"/layers/*; do
+  # If current class match one of a layer then show the layer name
+  yq r "$file" "window_class.(.==$window_class)" | grep .  && layer_file_that_use_window_class="$file $layer_file_that_use_window_class"
+done;
+
+layer_file_that_use_window_class=$(echo "$layer_file_that_use_window_class" | tr " " "\n")
+
+# If there is more than two file that target this window class, ask wich one to use
+rofi_cmd="rofi -dmenu -filter '​' $rofi_options -mesg 'Pick the layer to use' -p ''  -no-sort -columns 5 -lines 5 -padding 0 -auto-select -show-icons -location 6 -disable-history -markup-rows -theme $theme"
+layer_file_that_use_window_class=$(echo "$layer_file_that_use_window_class" | grep -n '^'| sed 's/^.*/+&/')
+layer_file_that_use_window_class=$(spacei3_which_key_menu_to_pango "$layer_file_that_use_window_class"  | eval "$rofi_cmd" )
+# layer_file_that_use_window_class=${layer_file_that_use_window_class/.*://}
+layer_file_that_use_window_class=$(echo "$layer_file_that_use_window_class" | sed 's/.*://') # Cut the prefix and selector char to get the actual filename
+
+# shellcheck disable=2034
+# Adding new layer associated to window class name
+new_layer_command="cp -n $config_dir/layers/layer-template.yaml $key_map_filename && yq w -i $key_map_filename 'window_class[+]' '$window_class' && $editor $cwd/layers/$window_class.yaml"
+
+if [[ ! -f "$layer_file_that_use_window_class" ]]; then
+  notify-send "yawhich-key" "No major mode layer for \"$window_class\", creating a new one..."
+  eval "cd $cwd; $new_layer_command" 2> /tmp/yawhich-key-error.log || notify-send yawhich-key "$(cat /tmp/yawhich-key-error.log)"
+  echo $window_class
+  exit 0
+fi
+
+key_map_filename=$layer_file_that_use_window_class
+
 fi
 
 
 # Adding new command to current keymap
-new_command_keymap='+>new-command'
+new_command_keymap='+>-new-command'
 new_command="$editor $key_map_filename"
 
 if [[ ! "$arg1" == "--major" ]]; then
@@ -232,14 +252,12 @@ fi
 get_key_names () {
   # echo "get_key_names"
   echo "$1" | yq r - "$2" |\
-  yq --printMode pv r - "**" --stripComments |\
-  grep -v '.*:$' |\
-  sed -e 's/[\.:].*//' |\
-  uniq
-}
+    yq --printMode pv r - "**" --stripComments |\
+    grep -v '.*:$' |\
+    sed -e 's/[\.:].*//' |\
+    uniq
+  }
 
-
-set -x
 
 layer_path_to_pango () {
   # Insert zero-space-width ​ caracter so the highlighted character it will strictly match with the rofi -filter '​'
@@ -283,9 +301,9 @@ layer_path_to_pango () {
     sed "s/\.$//g" |                                                                                   # Remove the dot at the end of the path so it doesnt get replaced
     sed "s/\./ $prefix /g" |                                                                           # Swap the dots with the prefix
     sed "s/\+//g"                                                                                      # Remove all the + markers
-  # echo "$before$key$after"
+      # echo "$before$key$after"
 
-}
+    }
 
 
 
@@ -331,8 +349,8 @@ $new_command_keymap
   # If user want to add a new command instead
   if [[ "$selected_stripped" == "$new_command_keymap" ]]; then
     # line=()
-   eval "$new_command"
-   exit 0
+    eval "$new_command"
+    exit 0
   fi
 
   # Get the command string to execute
