@@ -254,6 +254,7 @@ get_key_names () {
   echo "$1" | yq r - "$2" |\
     yq --printMode pv r - "**" --stripComments |\
     grep -v '.*:$' |\
+    grep -v '^ ' |\
     sed -e 's/[\.:].*//' |\
     uniq
   }

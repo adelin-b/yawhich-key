@@ -44,15 +44,15 @@ keymaps:
   # Quiting functionalities
   +quit:
     +quit: xdotool key ctrl+q
-    +restart: xdotool key ctrl+l && xdotool type 'chrome://restart' && xdotool key KP_Enter
+    +restart: 'xdotool key ctrl+l && xdotool type "chrome://restart" && xdotool key KP_Enter'
 
   # Files
   # TODO duplaction of files key when multiples submenus
   +files:
     # TODO not working yet
-    +panel: 'xdotool key ctrl+l && xdotool type "Focus Panel Bar" && xdotool key Down && xdotool key KP_Enter'
-    +bookmarks: 'xdotool key ctrl+l && xdotool type "Focus Bookmarks Bar" && xdotool key Down && xdotool key KP_Enter'
-    +tab: 'xdotool key ctrl+l && xdotool type "Focus Tab Bar" && xdotool key Down && xdotool key KP_Enter'
+    +panel: 'xdotool key F2 && xdotool type "Focus Panel Bar" && xdotool key Down && xdotool key KP_Enter'
+    +bookmarks: 'xdotool key F2 && xdotool type "Focus Bookmarks Bar" && xdotool key Down && xdotool key KP_Enter'
+    +tab: 'xdotool key F2 && xdotool type "Focus Tab Bar" && xdotool key Down && xdotool key KP_Enter'
   #   +new:
   #   +open:
   #   +copy:
