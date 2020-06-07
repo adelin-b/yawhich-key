@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.8.0](https://github.com/adelin-b/yawhich-key/compare/v0.7.0...v0.8.0) (2020-06-07)
+
+
+### Features
+
+* **layers:** now use the window_class key in yaml ([dfd2a4c](https://github.com/adelin-b/yawhich-key/commit/dfd2a4c861f91928c00cd05a42a980e28c25c664))
+
+
+### Bug Fixes
+
+* **layers:** now doesnt have weird duplicates ([1a9d3e3](https://github.com/adelin-b/yawhich-key/commit/1a9d3e30a5e04c2a5d07d2778e3e3df01f4d1785))
+
 ## [0.7.0](https://github.com/adelin-b/yawhich-key/compare/v0.6.0...v0.7.0) (2020-06-06)
 
 
