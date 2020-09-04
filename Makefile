@@ -1,6 +1,6 @@
 NAME=yawhich-key
 # VERSION=`git describe --abbrev=0 --tags`
-VERSION=0.7.0
+VERSION=0.9.0
 
 # DIRS=etc lib bin sbin share
 # INSTALL_DIRS=`find $(DIRS) -type d 2>/dev/null`
