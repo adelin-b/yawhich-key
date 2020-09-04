@@ -36,6 +36,8 @@ keymaps:
     +hibernate: sus+pend
     +lock: ~/dotfiles/scripts/lock.sh
   +notifications: ./yawhich-key ./layers/notifications.yaml
+  +insert: 
+    +password/secrets: ~/dotfiles/scripts/lpass-menu.sh
   +apps:
     +file: $filemanager
     +calculator: rofi -show calc -modi calc -no-show-match -no-sort

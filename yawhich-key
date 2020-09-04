@@ -343,6 +343,7 @@ $new_command_keymap
   selected_stripped=$( strip_selection "$selected")
 
 
+  previous_key_path=$key_path
   # Update the path to the current key with the new selected one
   key_path=$key_path$selected_stripped.
 
@@ -365,8 +366,8 @@ $new_command_keymap
 
   # Get the command associated with the task name
   # Using yq go
+  transient=$(echo "$task" | yq r - "transient")
   task_command=$(echo "$task" | yq r - "command")
-  echo "$task_command"
 
   # Check whether we need confirmation to run this task
   # Using yq go
@@ -385,6 +386,13 @@ $new_command_keymap
     # Eval the command and display notification if there is errors
     eval "cd $cwd; $task_command" 2> /tmp/yawhich-key-error.log || notify-send yawhich-key "$(cat /tmp/yawhich-key-error.log)"
   fi
+
+  # Reset key path to previous one if transient mode is activated and remove task so the loop dont stop
+  if [ $transient == "true" ]; then
+    task_command=
+    key_path=$previous_key_path
+  fi
+
 }
 
 # Run yawhich-key throught submenus until a task is found or exit is done
