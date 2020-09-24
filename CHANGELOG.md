@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.1](https://github.com/adelin-b/yawhich-key/compare/v0.9.0...v0.9.1) (2020-09-24)
+
+
+### Bug Fixes
+
+* **yq:** new version must use a strategy ([2ee21b1](https://github.com/adelin-b/yawhich-key/commit/2ee21b15ac59a89d818888ea2c8f3451713ec60a))
+
 ## [0.9.0](https://github.com/adelin-b/yawhich-key/compare/v0.8.0...v0.9.0) (2020-09-04)
 
 
