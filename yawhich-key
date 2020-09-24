@@ -242,7 +242,7 @@ if [[ ! "$arg1" == "--major" ]]; then
   # i3tmp=$(mktemp)
   # i3=$(yq r  --printMode pv ./layers/core-i3.yaml "**" > $i3tmp)
   # key_map_content="$(yq m -a $i3tmp $coretmp)"
-  key_map_content="$(yq m -a $key_map_filename $cwd/layers/core.yaml "$config_dir/$layers")"
+  key_map_content="$(yq m -a=append $key_map_filename $cwd/layers/core.yaml "$config_dir/$layers")"
 else
   key_map_content="$(cat "$key_map_filename" )"
 fi
