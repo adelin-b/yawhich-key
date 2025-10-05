@@ -1,0 +1,230 @@
+.which-key-overlay {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  background: radial-gradient(
+    ellipse 60% 60% at 50% 100%,
+    rgba(0, 0, 0, 1.0) 0%,
+    rgba(0, 0, 0, 0.7) 25%,
+    rgba(0, 0, 0, 0.5) 50%,
+    rgba(0, 0, 0, 0.3) 70%,
+    rgba(0, 0, 0, 0.15) 85%,
+    transparent 100%
+  );
+}
+
+.which-key-menu {
+  width: 1400px;
+  max-width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: transparent;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.header-spacer {
+  height: 88px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  margin: 24px 24px 16px 24px;
+  height: 48px;
+  width: fit-content;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.back-button {
+  background: rgba(26, 26, 26, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(26, 26, 26, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 32px;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.breadcrumb-separator {
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0 4px;
+}
+
+.menu-items {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 0 24px 24px 24px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.menu-items::-webkit-scrollbar {
+  display: none;
+}
+
+.menu-items {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.keymap-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  height: 48px;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  background: rgba(26, 26, 26, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+}
+
+.keymap-item:hover {
+  background: rgba(255, 0, 68, 0.4);
+  border-color: rgba(255, 0, 68, 0.6);
+}
+
+.key-char {
+  color: #fff;
+  font-weight: 600;
+  background: rgba(255, 0, 68, 0.25);
+  padding: 3px 7px;
+  border-radius: 4px;
+  margin-right: 10px;
+  font-size: 12px;
+  min-width: 20px;
+  text-align: center;
+  border: none;
+  box-shadow: 0 0 8px rgba(255, 0, 68, 0.3);
+}
+
+.key-description {
+  color: var(--color-text);
+  flex: 1;
+}
+
+.nested-indicator {
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: auto;
+  font-size: 18px;
+  font-weight: 300;
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: rgba(26, 26, 26, 0.95);
+  border: 1px solid rgba(255, 0, 68, 0.5);
+  border-radius: 10px;
+  margin: 24px;
+  max-width: 600px;
+}
+
+.error-title {
+  color: rgba(255, 0, 68, 1);
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+}
+
+.error-message {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+  text-align: center;
+  word-break: break-word;
+}
+
+.error-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.error-button {
+  background: rgba(255, 0, 68, 0.3);
+  border: 1px solid rgba(255, 0, 68, 0.5);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.error-button:hover {
+  background: rgba(255, 0, 68, 0.5);
+  border-color: rgba(255, 0, 68, 0.7);
+}
+
+.error-button.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.error-button.secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}

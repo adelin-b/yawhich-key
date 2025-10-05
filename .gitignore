@@ -20,7 +20,7 @@
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
 
 # Thumbnails
 ._*
@@ -54,7 +54,6 @@ Temporary Items
 *.sig
 
 pkg/
-src/
 
 ### VisualStudioCode
 .vscode/*
@@ -245,4 +244,13 @@ dmypy.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Node
+node_modules
+dist
+dist-ssr
+*.local
+
+# Tauri
+src-tauri/target
 

@@ -1,0 +1,30 @@
+{
+  "name": "yawhich-key",
+  "version": "1.0.0",
+  "description": "Universal which-key shortcut manager for your entire computer",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.1.1",
+    "@tauri-apps/plugin-global-shortcut": "^2.0.1",
+    "@tauri-apps/plugin-shell": "^2.0.1",
+    "framer-motion": "^12.23.22",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "yaml": "^2.6.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.11"
+  }
+}
