@@ -8,6 +8,15 @@ use std::process::Command;
 use tauri::{AppHandle, Emitter, Manager, State, Window, LogicalPosition, LogicalSize};
 use tauri_plugin_global_shortcut::{Code, Modifiers, Shortcut, GlobalShortcutExt};
 
+#[cfg(target_os = "macos")]
+use cocoa::base::{id, nil};
+#[cfg(target_os = "macos")]
+use objc::runtime::Class;
+#[cfg(target_os = "macos")]
+use objc::{msg_send, sel, sel_impl};
+#[cfg(target_os = "macos")]
+use std::ffi::CStr;
+
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
 #[serde(untagged)]
 enum KeymapValue {
@@ -97,6 +106,34 @@ fn load_yaml_keymaps(path: &PathBuf) -> Result<HashMap<String, KeymapValue>, Str
     Ok(config.keymaps)
 }
 
+fn load_layer_configs(layers_dir: &PathBuf) -> Result<Vec<LayerConfig>, String> {
+    let mut configs = Vec::new();
+
+    if !layers_dir.exists() {
+        return Ok(configs);
+    }
+
+    let entries = fs::read_dir(layers_dir)
+        .map_err(|e| format!("Failed to read layers directory: {}", e))?;
+
+    for entry in entries {
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
+        let path = entry.path();
+
+        if path.extension().and_then(|s| s.to_str()) == Some("yaml") {
+            let content = fs::read_to_string(&path)
+                .map_err(|e| format!("Failed to read layer file {:?}: {}", path, e))?;
+
+            let config: LayerConfig = serde_yaml::from_str(&content)
+                .map_err(|e| format!("Failed to parse YAML in {:?}: {}", path, e))?;
+
+            configs.push(config);
+        }
+    }
+
+    Ok(configs)
+}
+
 #[tauri::command]
 fn load_settings(state: State<AppState>) -> Result<AppSettings, String> {
     let settings_file = state.config_dir.join("settings.yaml");
@@ -115,17 +152,316 @@ fn load_settings(state: State<AppState>) -> Result<AppSettings, String> {
     Ok(settings)
 }
 
+#[cfg(target_os = "macos")]
+#[derive(Debug, Clone, serde::Serialize)]
+struct WindowInfo {
+    bundle_id: String,
+    window_id: i32,
+    window_title: Option<String>,
+}
+
+#[cfg(target_os = "macos")]
+#[tauri::command]
+fn get_focused_app() -> Result<String, String> {
+    unsafe {
+        let workspace_class = Class::get("NSWorkspace").ok_or("NSWorkspace class not found")?;
+        let workspace: id = msg_send![workspace_class, sharedWorkspace];
+        let app: id = msg_send![workspace, frontmostApplication];
+
+        if app == nil {
+            return Err("No frontmost application".to_string());
+        }
+
+        let bundle_id: id = msg_send![app, bundleIdentifier];
+        if bundle_id == nil {
+            return Err("No bundle identifier".to_string());
+        }
+
+        let c_str: *const i8 = msg_send![bundle_id, UTF8String];
+        let str = std::ffi::CStr::from_ptr(c_str)
+            .to_string_lossy()
+            .into_owned();
+
+        Ok(str)
+    }
+}
+
+#[cfg(target_os = "macos")]
+#[tauri::command]
+fn get_focused_window() -> Result<WindowInfo, String> {
+    let bundle_id = get_focused_app()?;
+
+    // Try to get window title using AppleScript (simple and reliable)
+    let script = format!(
+        r#"tell application id "{}" to get name of front window"#,
+        bundle_id
+    );
+
+    let output = Command::new("osascript")
+        .arg("-e")
+        .arg(&script)
+        .output()
+        .ok();
+
+    let window_title = output
+        .and_then(|o| {
+            if o.status.success() {
+                String::from_utf8(o.stdout).ok()
+            } else {
+                None
+            }
+        })
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
+
+    Ok(WindowInfo {
+        bundle_id,
+        window_id: if window_title.is_some() { 0 } else { -1 },
+        window_title,
+    })
+}
+
+#[cfg(not(target_os = "macos"))]
+#[tauri::command]
+fn get_focused_app() -> Result<String, String> {
+    Err("Not supported on this platform".to_string())
+}
+
+#[cfg(target_os = "macos")]
+#[tauri::command]
+fn focus_window(bundle_id: String, window_id: i32, window_title: Option<String>) -> Result<(), String> {
+    // Use AppleScript to activate the application and optionally the specific window
+    // yawhich-key is independent - uses only native macOS APIs
+
+    let script = if window_id >= 0 && window_title.is_some() {
+        let title = window_title.unwrap();
+        // Try to focus specific window by title
+        format!(
+            r#"tell application id "{}"
+    activate
+    set frontmost to true
+    try
+        set index of window "{}" to 1
+    end try
+end tell"#,
+            bundle_id,
+            title.replace("\"", "\\\"")
+        )
+    } else {
+        // Fallback: just activate the app
+        format!(
+            r#"tell application id "{}" to activate"#,
+            bundle_id
+        )
+    };
+
+    let output = Command::new("osascript")
+        .arg("-e")
+        .arg(&script)
+        .output()
+        .map_err(|e| format!("Failed to execute osascript: {}", e))?;
+
+    if !output.status.success() {
+        let error = String::from_utf8_lossy(&output.stderr);
+        // Don't fail on window-specific errors, the app is still activated
+        eprintln!("AppleScript warning: {}", error);
+    }
+
+    Ok(())
+}
+
+#[cfg(not(target_os = "macos"))]
+#[tauri::command]
+fn focus_window(bundle_id: String, window_id: i32, window_title: Option<String>) -> Result<(), String> {
+    Err("Not supported on this platform".to_string())
+}
+
+#[tauri::command]
+fn load_major_mode_keymaps(state: State<AppState>, app_bundle_id: String) -> Result<HashMap<String, KeymapValue>, String> {
+    let layers_dir = state.config_dir.join("layers");
+    let configs = load_layer_configs(&layers_dir)?;
+
+    // Find matching layer by window_class (bundle ID)
+    for config in configs {
+        if config.window_class.contains(&app_bundle_id) {
+            return Ok(config.keymaps);
+        }
+    }
+
+    Err(format!("No major mode keymap found for app: {}", app_bundle_id))
+}
+
+#[tauri::command]
+fn create_major_mode_template(state: State<AppState>, app_bundle_id: String, app_name: String) -> Result<(), String> {
+    let layers_dir = state.config_dir.join("layers");
+
+    // Create layers directory if it doesn't exist
+    if !layers_dir.exists() {
+        fs::create_dir_all(&layers_dir)
+            .map_err(|e| format!("Failed to create layers directory: {}", e))?;
+    }
+
+    let template_path = layers_dir.join(format!("{}.yaml", app_name));
+
+    // Don't overwrite if file already exists
+    if template_path.exists() {
+        return Ok(());
+    }
+
+    let template = format!(
+r#"name: {}.yaml
+
+# This layer is active when {} is focused
+window_class:
+  - {}
+
+keymaps:
+  +file:
+    +save: osascript -e 'tell application "System Events" to keystroke "s" using command down'
+    +new: osascript -e 'tell application "System Events" to keystroke "n" using command down'
+    +open: osascript -e 'tell application "System Events" to keystroke "o" using command down'
+  +edit:
+    +copy: osascript -e 'tell application "System Events" to keystroke "c" using command down'
+    +paste: osascript -e 'tell application "System Events" to keystroke "v" using command down'
+    +undo: osascript -e 'tell application "System Events" to keystroke "z" using command down'
+  +view:
+    +fullscreen: osascript -e 'tell application "System Events" to keystroke "f" using {{command down, control down}}'
+"#,
+        app_name,
+        app_name.chars().next().unwrap().to_uppercase().to_string() + &app_name[1..],
+        app_bundle_id
+    );
+
+    fs::write(&template_path, template)
+        .map_err(|e| format!("Failed to write template file: {}", e))?;
+
+    Ok(())
+}
+
+#[cfg(target_os = "macos")]
+fn get_default_app(app_type: &str) -> Option<String> {
+    unsafe {
+        let workspace_class = Class::get("NSWorkspace")?;
+        let workspace: id = msg_send![workspace_class, sharedWorkspace];
+
+        match app_type {
+            "browser" => {
+                // Get default browser via URLForApplicationToOpenURL
+                let url_class = Class::get("NSURL")?;
+                let url_string_class = Class::get("NSString")?;
+                let http_str: id = msg_send![url_string_class, stringWithUTF8String: "http://example.com\0".as_ptr()];
+                let url: id = msg_send![url_class, URLWithString: http_str];
+
+                if url != nil {
+                    let bundle_url: id = msg_send![workspace, URLForApplicationToOpenURL: url];
+                    if bundle_url != nil {
+                        let path: id = msg_send![bundle_url, path];
+                        if path != nil {
+                            let c_str: *const i8 = msg_send![path, UTF8String];
+                            let path_str = CStr::from_ptr(c_str).to_string_lossy().into_owned();
+                            eprintln!("[DEBUG] Browser path: {}", path_str);
+                            // Extract app name from path (e.g., "/Applications/Google Chrome.app" -> "Google Chrome")
+                            if let Some(app_name) = path_str.split('/').last() {
+                                let name = app_name.trim_end_matches(".app").to_string();
+                                eprintln!("[DEBUG] Browser app name: {}", name);
+                                return Some(name);
+                            }
+                        }
+                    }
+                }
+                Some("Safari".to_string())
+            },
+            "terminal" => {
+                // Check for common terminals in order of preference
+                let terminals = vec![
+                    "Alacritty", "iTerm", "Kitty", "WezTerm",
+                    "Hyper", "Terminal"
+                ];
+
+                for terminal in terminals {
+                    let app_name_class = Class::get("NSString")?;
+                    let app_name: id = msg_send![app_name_class, stringWithUTF8String: format!("{}\0", terminal).as_ptr()];
+                    let app_url: id = msg_send![workspace, URLForApplicationWithBundleIdentifier: app_name];
+
+                    if app_url != nil {
+                        return Some(terminal.to_string());
+                    }
+                }
+
+                Some("Terminal".to_string())
+            },
+            "editor" => {
+                // Get default editor for .txt files
+                let url_class = Class::get("NSURL")?;
+                let url_string_class = Class::get("NSString")?;
+                let file_str: id = msg_send![url_string_class, stringWithUTF8String: "file:///tmp/test.txt\0".as_ptr()];
+                let url: id = msg_send![url_class, URLWithString: file_str];
+
+                if url != nil {
+                    let bundle_url: id = msg_send![workspace, URLForApplicationToOpenURL: url];
+                    if bundle_url != nil {
+                        let path: id = msg_send![bundle_url, path];
+                        if path != nil {
+                            let c_str: *const i8 = msg_send![path, UTF8String];
+                            let path_str = CStr::from_ptr(c_str).to_string_lossy().into_owned();
+                            if let Some(app_name) = path_str.split('/').last() {
+                                return Some(app_name.trim_end_matches(".app").to_string());
+                            }
+                        }
+                    }
+                }
+                Some("TextEdit".to_string())
+            },
+            _ => None
+        }
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn get_default_app(_app_type: &str) -> Option<String> {
+    None
+}
+
+fn resolve_default_apps(command: &str) -> String {
+    let mut resolved = command.to_string();
+
+    // Replace <default:browser>, <default:terminal>, <default:editor>
+    if resolved.contains("<default:") {
+        let patterns = vec!["browser", "terminal", "editor"];
+
+        for pattern in patterns {
+            let placeholder = format!("<default:{}>", pattern);
+            if resolved.contains(&placeholder) {
+                if let Some(app_name) = get_default_app(pattern) {
+                    // Quote the app name if it contains spaces
+                    let quoted_name = if app_name.contains(' ') {
+                        format!("\"{}\"", app_name)
+                    } else {
+                        app_name
+                    };
+                    resolved = resolved.replace(&placeholder, &quoted_name);
+                }
+            }
+        }
+    }
+
+    resolved
+}
+
 #[tauri::command]
 async fn execute_command(command: String, window: Window) -> Result<(), String> {
     // Hide window first
     window.hide().map_err(|e| e.to_string())?;
+
+    // Resolve default app placeholders
+    let resolved_command = resolve_default_apps(&command);
 
     // Execute command in shell
     #[cfg(target_os = "macos")]
     {
         Command::new("sh")
             .arg("-c")
-            .arg(&command)
+            .arg(&resolved_command)
             .spawn()
             .map_err(|e| format!("Failed to execute command: {}", e))?;
     }
@@ -134,7 +470,7 @@ async fn execute_command(command: String, window: Window) -> Result<(), String> 
     {
         Command::new("sh")
             .arg("-c")
-            .arg(&command)
+            .arg(&resolved_command)
             .spawn()
             .map_err(|e| format!("Failed to execute command: {}", e))?;
     }
@@ -143,7 +479,7 @@ async fn execute_command(command: String, window: Window) -> Result<(), String> 
     {
         Command::new("cmd")
             .arg("/C")
-            .arg(&command)
+            .arg(&resolved_command)
             .spawn()
             .map_err(|e| format!("Failed to execute command: {}", e))?;
     }
@@ -176,10 +512,30 @@ async fn reposition_window(window: Window) -> Result<(), String> {
     Ok(())
 }
 
-fn show_which_key(app: &AppHandle) {
+fn show_which_key(app: &AppHandle, major_mode: bool) {
     if let Some(window) = app.get_webview_window("main") {
-        // Only emit event - let React handle show/focus sequence
-        let _ = window.emit("show-which-key", ());
+        if major_mode {
+            // Get focused window info BEFORE showing window
+            match get_focused_window() {
+                Ok(window_info) => {
+                    let _ = window.emit("show-major-mode", window_info);
+                }
+                Err(e) => {
+                    eprintln!("Failed to get focused window: {}", e);
+                }
+            }
+        } else {
+            // Global mode - emit window info for focus restoration
+            match get_focused_window() {
+                Ok(window_info) => {
+                    let _ = window.emit("show-which-key", window_info);
+                }
+                Err(e) => {
+                    eprintln!("Failed to get focused window: {}", e);
+                    let _ = window.emit("show-which-key", ());
+                }
+            }
+        }
     }
 }
 
@@ -224,18 +580,37 @@ fn main() {
                 }
             }
 
-            // Register global shortcuts (Option+Ctrl+Space)
-            let shortcut = Shortcut::new(Some(Modifiers::ALT | Modifiers::CONTROL), Code::Space);
+            // Register global shortcuts
 
+            // Option+Ctrl+Space - global which-key
+            let global_shortcut = Shortcut::new(Some(Modifiers::ALT | Modifiers::CONTROL), Code::Space);
             app.global_shortcut()
-                .on_shortcut(shortcut, move |app, _shortcut, _event| {
-                    show_which_key(app);
+                .on_shortcut(global_shortcut, move |app, _shortcut, _event| {
+                    show_which_key(app, false);
                 })
                 .expect("Failed to register global shortcut");
 
+            // Option+Ctrl+, - major mode (app-specific)
+            let major_mode_shortcut = Shortcut::new(Some(Modifiers::ALT | Modifiers::CONTROL), Code::Comma);
+            app.global_shortcut()
+                .on_shortcut(major_mode_shortcut, move |app, _shortcut, _event| {
+                    show_which_key(app, true);
+                })
+                .expect("Failed to register major mode shortcut");
+
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![load_keymaps, load_settings, execute_command, reposition_window])
+        .invoke_handler(tauri::generate_handler![
+            load_keymaps,
+            load_settings,
+            execute_command,
+            reposition_window,
+            get_focused_app,
+            get_focused_window,
+            focus_window,
+            load_major_mode_keymaps,
+            create_major_mode_template
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

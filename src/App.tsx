@@ -14,17 +14,25 @@ interface AppSettings {
   animations: boolean;
 }
 
+interface WindowInfo {
+  bundle_id: string;
+  window_id: number;
+  window_title?: string;
+}
+
 function App() {
   const [visible, setVisible] = useState(false);
   const [keymaps, setKeymaps] = useState<Keymap>({});
   const [currentPath, setCurrentPath] = useState<string[]>([]);
   const [configError, setConfigError] = useState<string | null>(null);
   const [settings, setSettings] = useState<AppSettings>({ animations: true });
+  const [majorModeApp, setMajorModeApp] = useState<string | null>(null);
   const visibleRef = useRef(false);
   const isShowingRef = useRef(false);
   const keymapsRef = useRef<Keymap>({});
   const ignoreBlurRef = useRef(false);
   const sequenceCounterRef = useRef(0);
+  const previousWindowRef = useRef<WindowInfo | null>(null);
 
   useEffect(() => {
     const window = getCurrentWindow();
@@ -42,9 +50,7 @@ function App() {
         setKeymaps(loadedKeymaps);
         keymapsRef.current = loadedKeymaps;
         setSettings(loadedSettings);
-        console.log('[CONFIG] Loaded keymaps and settings, items:', Object.keys(loadedKeymaps).length);
       } catch (error) {
-        console.error('Failed to load config:', error);
         setConfigError(error as string);
       }
     };
@@ -53,50 +59,41 @@ function App() {
 
     // Listen for window blur (lose focus)
     const unlistenBlur = window.onFocusChanged(({ payload: focused }) => {
-      // Ignore focus events during show sequence
-      if (ignoreBlurRef.current) {
-        console.log('[BLUR] Ignoring (during show sequence)');
-        return;
-      }
-
-      console.log(`[BLUR] Focus changed: focused=${focused}, visible=${visibleRef.current}`);
-
-      // Close if we lose focus while visible
+      if (ignoreBlurRef.current) return;
       if (!focused && visibleRef.current) {
-        console.log('[BLUR] Lost focus while visible → closing');
         handleClose();
       }
     });
 
-    // Listen for global shortcut trigger
-    const unlisten = listen('show-which-key', async () => {
+    // Listen for major mode shortcut trigger
+    const unlistenMajorMode = listen<WindowInfo>('show-major-mode', async (event) => {
       const seq = ++sequenceCounterRef.current;
-      console.log(`[SHOW-01:${seq}] Event received`);
+      const startTime = performance.now();
+      const windowInfo = event.payload;
 
-      // Prevent duplicate calls
-      if (isShowingRef.current) {
-        console.log(`[SHOW-XX:${seq}] Already showing → ignoring`);
-        return;
-      }
+      if (isShowingRef.current) return;
 
-      console.log(`[SHOW-02:${seq}] Debounce passed`);
       isShowingRef.current = true;
       ignoreBlurRef.current = true;
       setCurrentPath([]);
+      previousWindowRef.current = windowInfo;
 
       try {
-        // Calculate window size
+        const t1 = performance.now();
+        const majorKeymaps = await invoke<Keymap>('load_major_mode_keymaps', { appBundleId: windowInfo.bundle_id });
+        console.log(`[${seq}] load-keymaps: ${(performance.now() - t1).toFixed(2)}ms`);
+
+        setKeymaps(majorKeymaps);
+        keymapsRef.current = majorKeymaps;
+        setMajorModeApp(windowInfo.bundle_id);
+
+        const t2 = performance.now();
         const monitor = await currentMonitor();
-        if (!monitor) {
-          console.log(`[SHOW-ERR:${seq}] No monitor found`);
-          return;
-        }
+        if (!monitor) return;
 
         const screenWidth = monitor.size.width / monitor.scaleFactor;
-        const rootKeymap = keymapsRef.current;
-        const itemCount = rootKeymap ? Object.keys(rootKeymap).length : 0;
+        const itemCount = Object.keys(majorKeymaps).length;
 
-        // Use exact same calculation as resize effect
         const contentWidth = 1400;
         const minItemWidth = 280;
         const gap = 10;
@@ -110,46 +107,125 @@ function App() {
         const calculatedHeight = headerHeight + padding + (rows * itemHeight) + totalGaps;
         const extraPadding = 10;
         const initialHeight = Math.max(150, Math.min(500, calculatedHeight + extraPadding));
+        console.log(`[${seq}] calculate-size: ${(performance.now() - t2).toFixed(2)}ms`);
 
-        console.log(`[SHOW-03:${seq}] Window sizing: ${screenWidth}x${initialHeight} (${itemCount} items, ${rows} rows)`);
-
+        const t3 = performance.now();
         await window.setSize({
           type: 'Logical',
           width: screenWidth,
           height: initialHeight
         });
         await invoke('reposition_window');
-        console.log(`[SHOW-04:${seq}] Window sized and positioned`);
+        console.log(`[${seq}] resize-window: ${(performance.now() - t3).toFixed(2)}ms`);
 
-        // Set visible FIRST (while window hidden) so React renders initial state
-        console.log(`[SHOW-05:${seq}] Setting visible=true (window still hidden)`);
+        const t4 = performance.now();
         setVisible(true);
         visibleRef.current = true;
-
-        // Wait for React + Framer Motion to render initial animation state
-        console.log(`[SHOW-06:${seq}] Waiting 32ms for React render`);
         await new Promise(resolve => setTimeout(resolve, 32));
+        console.log(`[${seq}] react-render-wait: ${(performance.now() - t4).toFixed(2)}ms`);
 
-        // Show window - content already rendered at initial position
-        console.log(`[SHOW-07:${seq}] Showing window`);
+        const t5 = performance.now();
         await window.show();
+        window.setFocus(); // Non-blocking
+        console.log(`[${seq}] show-and-focus: ${(performance.now() - t5).toFixed(2)}ms`);
 
-        // Steal focus
-        console.log(`[SHOW-08:${seq}] Setting focus`);
-        await window.setFocus();
-
-        // Verify focus after short delay
-        await new Promise(resolve => setTimeout(resolve, 50));
-        const stillFocused = await window.isFocused();
-        if (!stillFocused) {
-          console.log(`[SHOW-08b:${seq}] Re-stealing focus`);
-          await window.setFocus();
-        }
-
-        // Done
-        console.log(`[SHOW-09:${seq}] Complete`);
+        const totalTime = performance.now() - startTime;
+        console.log(`[${seq}] MAJOR-MODE TOTAL: ${totalTime.toFixed(2)}ms`);
       } catch (error) {
-        console.error(`[SHOW-ERR:${seq}]`, error);
+        console.error('MAJOR-MODE-ERROR:', error);
+        // Create template layer file and open in editor
+        try {
+          const appName = windowInfo.bundle_id.split('.').pop() || 'app';
+          await invoke('create_major_mode_template', {
+            appBundleId: windowInfo.bundle_id,
+            appName
+          });
+          // Open the template in editor
+          await invoke('execute_command', {
+            command: `open ~/.config/yawhich-key/layers/${appName}.yaml`
+          });
+        } catch (createErr) {
+          console.error(`[MAJOR-ERR:${seq}] Failed to create template:`, createErr);
+        }
+        isShowingRef.current = false;
+        ignoreBlurRef.current = false;
+      }
+    });
+
+    // Listen for global shortcut trigger
+    const unlisten = listen<WindowInfo>('show-which-key', async (event) => {
+      const seq = ++sequenceCounterRef.current;
+      const startTime = performance.now();
+      const windowInfo = event.payload;
+
+      if (isShowingRef.current) return;
+
+      isShowingRef.current = true;
+      ignoreBlurRef.current = true;
+      setCurrentPath([]);
+      setMajorModeApp(null);
+
+      if (windowInfo) {
+        previousWindowRef.current = windowInfo;
+      } else {
+        previousWindowRef.current = null;
+      }
+
+      try {
+        const t1 = performance.now();
+        const globalKeymaps = await invoke<Keymap>('load_keymaps');
+        console.log(`[${seq}] load-keymaps: ${(performance.now() - t1).toFixed(2)}ms`);
+
+        setKeymaps(globalKeymaps);
+        keymapsRef.current = globalKeymaps;
+
+        const t2 = performance.now();
+        const monitor = await currentMonitor();
+        if (!monitor) return;
+
+        const screenWidth = monitor.size.width / monitor.scaleFactor;
+        const rootKeymap = globalKeymaps;
+        const itemCount = rootKeymap ? Object.keys(rootKeymap).length : 0;
+
+        const contentWidth = 1400;
+        const minItemWidth = 280;
+        const gap = 10;
+        const padding = 48;
+        const headerHeight = 88;
+        const availableWidth = contentWidth - padding;
+        const columns = Math.max(1, Math.floor((availableWidth + gap) / (minItemWidth + gap)));
+        const rows = Math.ceil(itemCount / columns);
+        const itemHeight = 48;
+        const totalGaps = Math.max(0, (rows - 1) * gap);
+        const calculatedHeight = headerHeight + padding + (rows * itemHeight) + totalGaps;
+        const extraPadding = 10;
+        const initialHeight = Math.max(150, Math.min(500, calculatedHeight + extraPadding));
+        console.log(`[${seq}] calculate-size: ${(performance.now() - t2).toFixed(2)}ms`);
+
+        const t3 = performance.now();
+        await window.setSize({
+          type: 'Logical',
+          width: screenWidth,
+          height: initialHeight
+        });
+        await invoke('reposition_window');
+        console.log(`[${seq}] resize-window: ${(performance.now() - t3).toFixed(2)}ms`);
+
+        const t4 = performance.now();
+        setVisible(true);
+        visibleRef.current = true;
+        await new Promise(resolve => setTimeout(resolve, 32));
+        console.log(`[${seq}] react-render-wait: ${(performance.now() - t4).toFixed(2)}ms`);
+
+        const t5 = performance.now();
+        await window.show();
+        window.setFocus(); // Non-blocking
+        console.log(`[${seq}] show-and-focus: ${(performance.now() - t5).toFixed(2)}ms`);
+
+        const totalTime = performance.now() - startTime;
+        console.log(`[${seq}] GLOBAL-MODE TOTAL: ${totalTime.toFixed(2)}ms`);
+      } catch (error) {
+        console.error('GLOBAL-MODE-ERROR:', error);
       } finally {
         isShowingRef.current = false;
         ignoreBlurRef.current = false;
@@ -158,6 +234,7 @@ function App() {
 
     return () => {
       unlisten.then(fn => fn());
+      unlistenMajorMode.then(fn => fn());
       unlistenBlur.then(fn => fn());
     };
   }, []); // Run once on mount - never recreate listeners
@@ -185,14 +262,34 @@ function App() {
   };
 
   const handleClose = () => {
+    const startTime = performance.now();
+
     setVisible(false);
     visibleRef.current = false;
+    const t1 = performance.now() - startTime;
+
+    // Restore focus to previous window (non-blocking - fire and forget)
+    if (previousWindowRef.current) {
+      const windowToRestore = previousWindowRef.current;
+      previousWindowRef.current = null;
+
+      invoke('focus_window', {
+        bundleId: windowToRestore.bundle_id,
+        windowId: windowToRestore.window_id,
+        windowTitle: windowToRestore.window_title
+      }).catch(() => {});
+    }
+
     // Wait for exit animation to complete before hiding window
     setTimeout(() => {
+      const t2 = performance.now();
       getCurrentWindow().hide();
-      // Reset flags after window is hidden
+      const t3 = performance.now() - t2;
       isShowingRef.current = false;
       ignoreBlurRef.current = false;
+
+      const totalTime = performance.now() - startTime;
+      console.log(`CLOSE: invisible=${t1.toFixed(2)}ms hide=${t3.toFixed(2)}ms TOTAL=${totalTime.toFixed(2)}ms`);
     }, 200);
   };
 
@@ -224,81 +321,37 @@ function App() {
         const currentKeymap = getCurrentKeymap(currentPath) as Keymap;
         const itemCount = currentKeymap ? Object.keys(currentKeymap).length : 0;
 
-        // Get current window size before any changes
-        const currentSize = await window.outerSize();
-        console.log('[RESIZE] START - Current window size:', JSON.stringify({
-          width: currentSize.width,
-          height: currentSize.height,
-          itemCount,
-          pathDepth: currentPath.length
-        }, null, 2));
-
         if (itemCount === 0) return;
 
-        // Get screen width
         const monitor = await currentMonitor();
         if (!monitor) return;
 
         const screenWidth = monitor.size.width / monitor.scaleFactor;
 
-        // Calculate columns based on content width (1400px max)
         const contentWidth = 1400;
         const minItemWidth = 280;
         const gap = 10;
-        const padding = 48; // 24px on each side
-        const headerHeight = 88; // Header space always reserved: 24px margin-top + 48px fixed height + 16px margin-bottom
+        const padding = 48;
+        const headerHeight = 88;
 
         const availableWidth = contentWidth - padding;
         const columns = Math.max(1, Math.floor((availableWidth + gap) / (minItemWidth + gap)));
         const rows = Math.ceil(itemCount / columns);
 
-        // Height calculation: header + padding + (rows * item height) + gaps between rows
-        const itemHeight = 48; // padding (12*2) + content (~24)
+        const itemHeight = 48;
         const totalGaps = Math.max(0, (rows - 1) * gap);
         const calculatedHeight = headerHeight + padding + (rows * itemHeight) + totalGaps;
-
-        // Add extra padding to prevent scrollbar
         const extraPadding = 10;
-
-        // Min 150px, max 500px
         const height = Math.max(150, Math.min(500, calculatedHeight + extraPadding));
 
-        console.log('[RESIZE] Calculation breakdown:', JSON.stringify({
-          itemCount,
-          columns,
-          rows,
-          headerHeight,
-          padding,
-          itemHeight,
-          totalGaps,
-          calculatedHeight,
-          extraPadding,
-          finalHeight: height,
-          formula: `${headerHeight} + ${padding} + (${rows} * ${itemHeight}) + ${totalGaps} + ${extraPadding} = ${calculatedHeight + extraPadding}`,
-          clamped: calculatedHeight + extraPadding !== height ? 'YES (min 150, max 500)' : 'NO'
-        }, null, 2));
-
-        // Set window size using screen width
         await window.setSize({
           type: 'Logical',
           width: screenWidth,
           height: height
         });
-        console.log('[RESIZE] Window size set:', JSON.stringify({ width: screenWidth, height }, null, 2));
-
-        // Reposition window to keep it at bottom
         await invoke('reposition_window');
-
-        // Get final window size to confirm
-        const finalSize = await window.outerSize();
-        console.log('[RESIZE] COMPLETE - Final window size:', JSON.stringify({
-          width: finalSize.width,
-          height: finalSize.height,
-          changed: currentSize.height !== finalSize.height,
-          heightDiff: finalSize.height - currentSize.height
-        }, null, 2));
       } catch (error) {
-        console.error('[RESIZE ERROR]', error);
+        // Silent
       }
     };
 
@@ -338,6 +391,7 @@ function App() {
           onClose={handleClose}
           onBack={handleBack}
           enableAnimations={settings.animations}
+          majorModeApp={majorModeApp}
         />
       )}
     </AnimatePresence>

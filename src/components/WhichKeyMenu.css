@@ -48,12 +48,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px;
   margin: 24px 24px 16px 24px;
-  height: 48px;
+  height: fit-content;
   width: fit-content;
-  border-radius: 10px;
-  box-sizing: border-box;
 }
 
 .back-button {
@@ -102,6 +99,11 @@
 .breadcrumb-separator {
   color: rgba(255, 255, 255, 0.3);
   margin: 0 4px;
+}
+
+.major-mode-indicator {
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
 .menu-items {

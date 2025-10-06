@@ -13,9 +13,10 @@ interface WhichKeyMenuProps {
   onClose: () => void;
   onBack: () => void;
   enableAnimations?: boolean;
+  majorModeApp?: string | null;
 }
 
-const WhichKeyMenu = ({ keymap, path, onKeyPress, onClose, onBack, enableAnimations = true }: WhichKeyMenuProps) => {
+const WhichKeyMenu = ({ keymap, path, onKeyPress, onClose, onBack, enableAnimations = true, majorModeApp = null }: WhichKeyMenuProps) => {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -79,12 +80,26 @@ const WhichKeyMenu = ({ keymap, path, onKeyPress, onClose, onBack, enableAnimati
   };
 
   const renderBreadcrumb = () => {
+    // Format major mode app name
+    const formatAppName = (bundleId: string) => {
+      const parts = bundleId.split('.');
+      const name = parts[parts.length - 1];
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    };
+
     return (
       <>
-        <button className="back-button" onClick={onBack}>
-          ←
-        </button>
+        {path.length > 0 && (
+          <button className="back-button" onClick={onBack}>
+            ←
+          </button>
+        )}
         <div className="breadcrumb">
+          {majorModeApp && path.length === 0 && (
+            <span className="breadcrumb-item major-mode-indicator">
+              Major Mode: {formatAppName(majorModeApp)}
+            </span>
+          )}
           {path.map((pathKey, index) => {
             const part = pathKey.replace(/^\+/, '');
             return (
@@ -92,7 +107,7 @@ const WhichKeyMenu = ({ keymap, path, onKeyPress, onClose, onBack, enableAnimati
                 key={pathKey}
                 className="breadcrumb-item"
               >
-                {index > 0 && <span className="breadcrumb-separator">/</span>}
+                {(index > 0 || (majorModeApp && path.length > 0)) && <span className="breadcrumb-separator">/</span>}
                 {part}
               </span>
             );
@@ -120,7 +135,7 @@ const WhichKeyMenu = ({ keymap, path, onKeyPress, onClose, onBack, enableAnimati
         transition={enableAnimations ? { duration: 0.15, ease: "easeOut" } : { duration: 0 }}
       >
         <div className="header-spacer">
-          {path.length > 0 && (
+          {(path.length > 0 || majorModeApp) && (
             <motion.div
               className="menu-header"
               initial={enableAnimations ? { opacity: 0, y: -10 } : false}

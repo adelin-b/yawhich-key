@@ -5,9 +5,10 @@ A modern, cross-platform keyboard shortcut manager inspired by Emacs which-key, 
 ## Features
 
 - 🚀 Native performance with Rust backend
-- ⌨️ Global keyboard shortcuts (default: Super+Space)
+- ⌨️ Global keyboard shortcuts (default: Ctrl+Option+Space)
+- 🎯 **Major Mode**: App-specific keymaps (Ctrl+Option+,)
 - 📝 YAML-based configuration (compatible with original format)
-- 🎨 Clean, modern UI
+- 🎨 Clean, modern UI with configurable animations
 - 🔧 Extensible keymap system with nested shortcuts
 - 💻 Cross-platform (macOS, Linux, Windows)
 - 🪶 Lightweight and fast
@@ -43,25 +44,25 @@ Configuration files are located in `~/.config/yawhich-key/` (or `$XDG_CONFIG_HOM
 
 ```
 ~/.config/yawhich-key/
-├── config.yaml          # Main configuration
+├── settings.yaml        # Application settings
 └── layers/
-    ├── core.yaml        # Default keymaps
-    └── *.yaml           # Application-specific keymaps
+    ├── core.yaml        # Global keymaps (Ctrl+Option+Space)
+    ├── vscode.yaml      # VSCode major mode
+    ├── browser.yaml     # Browser major mode
+    └── *.yaml           # Other app-specific keymaps
 ```
 
-### Example Configuration
+### Settings
 
-`~/.config/yawhich-key/config.yaml`:
+`~/.config/yawhich-key/settings.yaml`:
 
 ```yaml
-commands:
-  editor: code
-  terminal: kitty
-  terminal_hold: kitty --hold
-  music: spotify
-  file_manager: dolphin
-  browser: vivaldi-snapshot
+# Enable or disable animations
+# Set to false for instant appearance/disappearance
+animations: true
 ```
+
+### Core Layer Example
 
 `~/.config/yawhich-key/layers/core.yaml`:
 
@@ -70,20 +71,61 @@ name: core.yaml
 
 keymaps:
   +apps:
-    +file: $file_manager
-    +terminal: $terminal
-    +browser: $browser
-    +editor: $editor
+    +terminal: open -a Alacritty
+    +browser: open https://
+    +finder: open -a Finder
+    +editor: open -a "Visual Studio Code"
   +system:
-    +lock: systemctl suspend
-    +reboot: systemctl reboot
+    +lock: pmset displaysleepnow
+    +sleep: pmset sleepnow
+  +media:
+    +play-pause: osascript -e 'tell application "Music" to playpause'
+    +next-track: osascript -e 'tell application "Music" to next track'
 ```
+
+**Note**: Commands can be anything you want - shell scripts, AppleScript, or any executable. The yabai window manager is NOT required.
 
 ## Usage
 
-1. Press `Super+Space` (⌘+Space on macOS) to open the which-key menu
+### Global Mode
+
+1. Press `Ctrl+Option+Space` to open the global which-key menu
 2. Press keys shown in the menu to navigate or execute commands
 3. Press `Esc` to close the menu
+
+### Major Mode (App-Specific)
+
+Major mode provides context-aware keymaps based on the currently focused application.
+
+1. Press `Ctrl+Option+,` to open major mode menu
+2. The menu shows commands specific to the active application
+3. Create app-specific layers in `~/.config/yawhich-key/layers/`
+
+Example major mode layer (`~/.config/yawhich-key/layers/vscode.yaml`):
+
+```yaml
+name: vscode.yaml
+
+# This layer is active when VSCode is focused
+window_class:
+  - com.microsoft.VSCode
+
+keymaps:
+  +file:
+    +save: osascript -e 'tell application "System Events" to keystroke "s" using command down'
+    +new: osascript -e 'tell application "System Events" to keystroke "n" using command down'
+  +search:
+    +find: osascript -e 'tell application "System Events" to keystroke "f" using command down'
+    +files: osascript -e 'tell application "System Events" to keystroke "p" using command down'
+```
+
+To find the bundle ID of an application on macOS:
+
+```bash
+osascript -e 'id of app "Application Name"'
+# Example: osascript -e 'id of app "Visual Studio Code"'
+# Returns: com.microsoft.VSCode
+```
 
 ## Architecture
 
