@@ -11,7 +11,7 @@
   "homepage": "https://github.com/adelin-b/yawhich-key",
   "keywords": ["yawhich-key", "which-key", "keyboard", "shortcuts", "macos", "tauri"],
   "scripts": {
-    "dev": "tauri dev",
+    "dev": "vite",
     "build": "tsc && vite build",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
