@@ -1,110 +1,137 @@
 # yawhich-key
 
-This repository is a work in progress
-
-An universal which-key shortcut displayer inspired from emacs-which-key 
+A which-key like keybinding helper for macOS - Emacs-style command discovery for your desktop.
 
 ![preview](./docs/assets/yawhich-key.gif)
 
-(of course yawich-key is unixporn compliant and can be customized through pywal, themer, env variable)
+yawhich-key displays available keybindings in a popup window, making it easy to discover and remember keyboard shortcuts for your applications and workflows.
 
-# Get started
+## ✨ Features
 
-### Shortcuts
-Create two shortcuts with your favorite shortcut manager
+- 🚀 **Fast & Native** - Built with Tauri + React for minimal resource usage
+- 🎨 **Customizable Themes** - Support for custom CSS themes
+- 🔍 **Fuzzy Search** - Press `/` to quickly search through commands
+- 🎯 **Major Mode** - Application-specific keymaps based on active app
+- 🔒 **Hydra Mode** - Keep menu open for repeated command execution
+- ⚡ **Smooth Animations** - Beautiful transitions (can be disabled)
+- 📝 **YAML Configuration** - Easy-to-read configuration format
+
+## 📦 Installation
+
+### Homebrew (Recommended)
+
 ```bash
-bash ~/path/to/yawhich-key # (minor mode) for default commands, conventionaly on space
-bash ~/path/to/yawhich-key --major #(major mode) for application specific commands, conventionaly on comma
-```
-#### i3
-
-```
-bindsym $mod+space exec "bash ~/path/to/yawhich-key"
-bindsym $mod+comma exec "bash ~/path/to/yawhich-key --major"
-
+brew tap adelin-b/yawhich-key
+brew install yawhich-key
 ```
 
-### Create config 
+### DMG Installer
+
+Download the latest DMG from [Releases](https://github.com/adelin-b/yawhich-key/releases) and drag to Applications.
+
+### Build from Source
+
+See [INSTALL.md](INSTALL.md) for detailed build instructions.
+
+## 🚀 Quick Start
+
+### 1. Configure
+
+Create your config directory and core layer:
+
 ```bash
-mkdir ${XDG_CONFIG_HOME:=$HOME/.config}/yawhich-key
-$EDITOR ${XDG_CONFIG_HOME:=$HOME/.config}/yawhich-key/config.yaml
-```
-
-```yaml
-# .config/yawhich-key/config.yaml
-commands:
-  editor: code
-  terminal: kitty
-  terminal_hold: kitty --hold
-  music: spotify
-  file_manager: dolphin
-  browser: vivaldi-snapshot
-property:
-  # Here you can override default options (man rofi)
-  rofi_options: -lines 5 -location 6
-```
-
-
-
-###  Minor mode (general short cut map)
-`./yawhich-key`
-
-Configure your custom commands inside `./layers/core.yaml` (core.yaml is the entry point by default) and chain them by 
-- calling `./yawhich-key layers/custom-layer.yaml` if you want to separate the files
-- nesting 
-
-```yaml
-// foo.yaml
-name: core.yaml.bak
-
-# Which window class with it match against (not used yet)
-# window_class: any(list(str()), str())
-
-# dependencies: (not used yet)
+mkdir -p ~/.config/yawhich-key/layers
+cat > ~/.config/yawhich-key/layers/core.yaml << 'EOF'
+name: Core Keybindings
 
 keymaps:
-    
-    +apps: # it can be nested
-        +file: $file_manager
-        +calculator: rofi -show calc -modi calc -no-show-match -no-sort
-        +music: $music
-        +terminal: $terminal
-        +browser: $browser
-        +process: $terminal --class popup_bashtop bashtop
-        +kill: xkill
-        +editor: $editor
-    +files: ./yawhich-key ./layers/files.yaml
-    +toggles: ./yawhich-key ./layers/toggles.yaml # another layer can be calledinstead of nesting
-    
-    +/-search: rofi -auto-select -show-icons -drun-show-actions -combi-modi window,drun,ssh -show combi -modi combi
+  +apps:
+    +browser: open -a "Safari"
+    +terminal: open -a "Terminal"
+    +editor: open -a "Visual Studio Code"
 
+  +window:
+    +close: osascript -e 'tell application "System Events" to keystroke "w" using command down'
+    +minimize: osascript -e 'tell application "System Events" to keystroke "m" using command down'
 
+  +system:
+    +sleep: pmset sleepnow
+    +lock: /System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend
+EOF
 ```
 
+### 2. Launch
 
-###  Major mode (current window class specific)
-`./yawhich-key --major` will search the matching currently focused window WM_CLASS in `layers/wm_class.yaml`
-If nothing is found it will `notifiy-send an error`
+```bash
+# Run the app (it stays in background)
+yawhich-key
 
-Soon to be defined by the `window_class:` key in layers
+# Or launch from Applications
+open /Applications/yawhich-key.app
+```
 
-# Limitation
-- Not yet in config folder
-- Cant use special keys like `space, esc, alt, meta...` only chars
-- Cant use two same key in a same menu
-- If you press a wrong secquence or delete the invisible character the match wont work. (every time you open yawhich-key an invisible character is inserted in the search and this is what allow me to match by only pressing one key)
-- Cant go back
+### 3. Use
 
-# Roadmap
-- [x] Basic secquence key handling
-- [x] Configure through bash script or yaml with env var instead of json
-- [x] App specific yawhich-key
-- [ ] Easy sharing layers with community through gist upload commands (inspired by pet)
-- [ ] Standalone program (not using rofi), handle special keys shortcuts
+The app responds to global shortcuts (configure these with your shortcut manager):
+- Show general shortcuts
+- Show app-specific shortcuts (major mode)
 
-# Changelog
-[CHANGELOG.md](./CHANGELOG.md)
+Once open:
+- **Type any key** to execute or navigate
+- **/** - Search mode
+- **H** - Toggle Hydra mode
+- **Escape** - Close
 
-# Contributing
-Any contribution is welcome, especially ideas of usefull shortcuts,
-themes, tackling ongoing issues, security issues / fix !
+## 📖 Documentation
+
+- [Installation Guide](INSTALL.md) - Detailed installation instructions
+- [Scripts Guide](SCRIPTS.md) - NPM scripts for building and releasing
+- [Release Guide](RELEASE.md) - For maintainers
+- See the old README: [README-OLD.md](README-OLD.md)
+
+## 🔧 Configuration
+
+Create `~/.config/yawhich-key/settings.yaml`:
+
+```yaml
+animations: true
+theme: "custom-theme"  # optional
+```
+
+### Custom Themes
+
+Create `~/.config/yawhich-key/themes/custom-theme.css`:
+
+```css
+:root {
+  --bg-color: rgba(26, 26, 26, 0.95);
+  --text-color: #e0e0e0;
+  --accent-color: #ff0044;
+}
+```
+
+### Major Mode (App-specific keymaps)
+
+Create layer files named after app bundle IDs:
+
+`~/.config/yawhich-key/layers/Code.yaml` (for VS Code):
+```yaml
+name: Visual Studio Code Commands
+
+keymaps:
+  +file:
+    +new: osascript -e 'tell application "System Events" to keystroke "n" using command down'
+    +save: osascript -e 'tell application "System Events" to keystroke "s" using command down'
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit issues or pull requests.
+
+## 📝 License
+
+See [LICENSE](LICENSE) for details.
+
+## 🙏 Acknowledgments
+
+Inspired by [Emacs which-key](https://github.com/justbur/emacs-which-key), [Spacemacs](https://www.spacemacs.org/), and [Doom Emacs](https://github.com/doomemacs/doomemacs).

@@ -1,0 +1,118 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest]
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build Tauri app
+        run: bun run tauri build --bundles app
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Get version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create DMG
+        run: |
+          cd src-tauri/target/release/bundle/macos
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "arm64" ]; then
+            ARCH_NAME="aarch64"
+          else
+            ARCH_NAME="x86_64"
+          fi
+
+          create-dmg \
+            --volname "yawhich-key" \
+            --volicon "../../../../icons/icon.icns" \
+            --window-pos 200 120 \
+            --window-size 660 400 \
+            --icon-size 100 \
+            --icon "yawhich-key.app" 180 170 \
+            --hide-extension "yawhich-key.app" \
+            --app-drop-link 480 170 \
+            "yawhich-key_${{ steps.get_version.outputs.VERSION }}_${ARCH_NAME}.dmg" \
+            "yawhich-key.app"
+
+      - name: Calculate checksums
+        id: checksums
+        run: |
+          cd src-tauri/target/release/bundle/macos
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "arm64" ]; then
+            ARCH_NAME="aarch64"
+          else
+            ARCH_NAME="x86_64"
+          fi
+          DMG_FILE="yawhich-key_${{ steps.get_version.outputs.VERSION }}_${ARCH_NAME}.dmg"
+          SHA256=$(shasum -a 256 "$DMG_FILE" | awk '{print $1}')
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "dmg_file=$DMG_FILE" >> $GITHUB_OUTPUT
+          echo "arch=$ARCH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            src-tauri/target/release/bundle/macos/${{ steps.checksums.outputs.dmg_file }}
+          body: |
+            ## Installation
+
+            ### Homebrew
+            ```bash
+            brew tap adelin-b/yawhich-key
+            brew install yawhich-key
+            ```
+
+            ### DMG
+            Download the DMG file below and drag to Applications.
+
+            ## Checksums
+            - `${{ steps.checksums.outputs.dmg_file }}`: `${{ steps.checksums.outputs.sha256 }}`
+
+            ## What's Changed
+            See the commit history for details.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update formula (comment with checksum)
+        run: |
+          echo "::notice::Update Formula/yawhich-key.rb with:"
+          echo "::notice::${{ steps.checksums.outputs.arch }} sha256: ${{ steps.checksums.outputs.sha256 }}"

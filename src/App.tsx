@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { getCurrentWindow, currentMonitor } from '@tauri-apps/api/window';
+import { getCurrentWindow, currentMonitor, LogicalSize } from '@tauri-apps/api/window';
 import { AnimatePresence } from 'framer-motion';
 import WhichKeyMenu from './components/WhichKeyMenu';
 import './App.css';
@@ -12,6 +12,7 @@ interface Keymap {
 
 interface AppSettings {
   animations: boolean;
+  theme?: string;
 }
 
 interface WindowInfo {
@@ -27,6 +28,7 @@ function App() {
   const [configError, setConfigError] = useState<string | null>(null);
   const [settings, setSettings] = useState<AppSettings>({ animations: true });
   const [majorModeApp, setMajorModeApp] = useState<string | null>(null);
+  const [hydraMode, setHydraMode] = useState(false);
   const visibleRef = useRef(false);
   const isShowingRef = useRef(false);
   const keymapsRef = useRef<Keymap>({});
@@ -50,6 +52,11 @@ function App() {
         setKeymaps(loadedKeymaps);
         keymapsRef.current = loadedKeymaps;
         setSettings(loadedSettings);
+
+        // Load custom theme if specified
+        if (loadedSettings.theme) {
+          await loadTheme(loadedSettings.theme);
+        }
       } catch (error) {
         setConfigError(error as string);
       }
@@ -110,11 +117,7 @@ function App() {
         console.log(`[${seq}] calculate-size: ${(performance.now() - t2).toFixed(2)}ms`);
 
         const t3 = performance.now();
-        await window.setSize({
-          type: 'Logical',
-          width: screenWidth,
-          height: initialHeight
-        });
+        await window.setSize(new LogicalSize(screenWidth, initialHeight));
         await invoke('reposition_window');
         console.log(`[${seq}] resize-window: ${(performance.now() - t3).toFixed(2)}ms`);
 
@@ -203,11 +206,7 @@ function App() {
         console.log(`[${seq}] calculate-size: ${(performance.now() - t2).toFixed(2)}ms`);
 
         const t3 = performance.now();
-        await window.setSize({
-          type: 'Logical',
-          width: screenWidth,
-          height: initialHeight
-        });
+        await window.setSize(new LogicalSize(screenWidth, initialHeight));
         await invoke('reposition_window');
         console.log(`[${seq}] resize-window: ${(performance.now() - t3).toFixed(2)}ms`);
 
@@ -246,7 +245,13 @@ function App() {
     if (typeof current === 'string') {
       // Execute command
       invoke('execute_command', { command: current });
-      handleClose();
+
+      // In hydra mode, reset path but keep menu open
+      if (hydraMode) {
+        setCurrentPath([]);
+      } else {
+        handleClose();
+      }
     } else if (current) {
       // Navigate deeper
       setCurrentPath(newPath);
@@ -311,9 +316,9 @@ function App() {
     }
   }, [visible]);
 
-  // Auto-resize window based on content (only when path changes, not on initial mount)
+  // Auto-resize window based on content whenever path changes
   useEffect(() => {
-    if (!visible || currentPath.length === 0) return;
+    if (!visible) return;
 
     const updateWindowSize = async () => {
       try {
@@ -332,7 +337,15 @@ function App() {
         const minItemWidth = 280;
         const gap = 10;
         const padding = 48;
-        const headerHeight = 88;
+
+        // Calculate header height dynamically
+        // Base header-spacer: 88px
+        // + key-sequence when path > 0: ~60px
+        // + major mode indicator: ~60px
+        const baseHeaderHeight = 88;
+        const keySequenceHeight = currentPath.length > 0 ? 60 : 0;
+        const majorModeHeight = (majorModeApp && currentPath.length === 0) ? 60 : 0;
+        const headerHeight = baseHeaderHeight + keySequenceHeight + majorModeHeight;
 
         const availableWidth = contentWidth - padding;
         const columns = Math.max(1, Math.floor((availableWidth + gap) / (minItemWidth + gap)));
@@ -344,11 +357,12 @@ function App() {
         const extraPadding = 10;
         const height = Math.max(150, Math.min(500, calculatedHeight + extraPadding));
 
-        await window.setSize({
-          type: 'Logical',
-          width: screenWidth,
-          height: height
-        });
+        console.log(`[RESIZE] path=${currentPath.join('→')}, items=${itemCount}, rows=${rows}, headerHeight=${headerHeight}, finalHeight=${height}`);
+
+        await window.setSize(new LogicalSize(screenWidth, height));
+
+        // Small delay to ensure size has been applied before repositioning
+        await new Promise(resolve => setTimeout(resolve, 10));
         await invoke('reposition_window');
       } catch (error) {
         // Silent
@@ -362,6 +376,28 @@ function App() {
   const handleEditConfig = () => {
     invoke('execute_command', { command: 'open ~/.config/yawhich-key/layers/core.yaml' });
     handleClose();
+  };
+
+  const loadTheme = async (themeName: string) => {
+    try {
+      // Load custom theme CSS from backend
+      const themeCSS = await invoke<string>('load_theme', { themeName });
+
+      // Remove existing custom theme if any
+      const existingTheme = document.getElementById('custom-theme');
+      if (existingTheme) {
+        existingTheme.remove();
+      }
+
+      // Inject new theme
+      const styleElement = document.createElement('style');
+      styleElement.id = 'custom-theme';
+      styleElement.textContent = themeCSS;
+      document.head.appendChild(styleElement);
+    } catch (error) {
+      console.error('Failed to load theme:', error);
+      // Silently fail - use default theme
+    }
   };
 
   return (
@@ -392,6 +428,8 @@ function App() {
           onBack={handleBack}
           enableAnimations={settings.animations}
           majorModeApp={majorModeApp}
+          hydraMode={hydraMode}
+          onToggleHydra={() => setHydraMode(!hydraMode)}
         />
       )}
     </AnimatePresence>

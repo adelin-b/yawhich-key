@@ -3,12 +3,25 @@
   "version": "1.0.0",
   "description": "Universal which-key shortcut manager for your entire computer",
   "type": "module",
+  "author": "Adelin B",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adelin-b/yawhich-key.git"
+  },
+  "homepage": "https://github.com/adelin-b/yawhich-key",
+  "keywords": ["yawhich-key", "which-key", "keyboard", "shortcuts", "macos", "tauri"],
   "scripts": {
-    "dev": "vite",
+    "dev": "tauri dev",
     "build": "tsc && vite build",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build",
+    "tauri:build:app": "tauri build --bundles app",
+    "tauri:build:dmg": "tauri build --bundles dmg",
+    "tauri:build:all": "tauri build --bundles app,dmg",
+    "bundle:dmg": "node scripts/create-dmg.js",
+    "release": "node scripts/release.js",
+    "icon": "tauri icon"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.1.1",

@@ -36,6 +36,8 @@ struct LayerConfig {
 struct AppSettings {
     #[serde(default = "default_animations")]
     animations: bool,
+    #[serde(default)]
+    theme: Option<String>,
 }
 
 fn default_animations() -> bool {
@@ -46,6 +48,7 @@ impl Default for AppSettings {
     fn default() -> Self {
         Self {
             animations: true,
+            theme: None,
         }
     }
 }
@@ -103,7 +106,77 @@ fn load_yaml_keymaps(path: &PathBuf) -> Result<HashMap<String, KeymapValue>, Str
     let config: LayerConfig = serde_yaml::from_str(&content)
         .map_err(|e| format!("Failed to parse YAML: {}", e))?;
 
+    // Validate for key conflicts
+    let validation = validate_keymaps(&config.keymaps);
+    if !validation.valid {
+        let error_messages: Vec<String> = validation.errors.iter()
+            .map(|e| format!("{}: {}", e.error_type, e.message))
+            .collect();
+        eprintln!("[WARN] Config validation errors in {:?}:", path);
+        for msg in &error_messages {
+            eprintln!("  - {}", msg);
+        }
+    }
+
     Ok(config.keymaps)
+}
+
+fn validate_keymaps(keymaps: &HashMap<String, KeymapValue>) -> ValidationResult {
+    let mut errors = Vec::new();
+
+    validate_keymaps_recursive(keymaps, &Vec::new(), &mut errors);
+
+    ValidationResult {
+        valid: errors.is_empty(),
+        errors,
+    }
+}
+
+fn validate_keymaps_recursive(
+    keymaps: &HashMap<String, KeymapValue>,
+    path: &Vec<String>,
+    errors: &mut Vec<ValidationError>
+) {
+    // Check for duplicate key bindings at this level
+    let mut key_chars: HashMap<char, Vec<String>> = HashMap::new();
+
+    for (key, value) in keymaps {
+        let display_key = key.trim_start_matches('+');
+        let first_char = display_key.chars().next().unwrap_or(' ').to_lowercase().next().unwrap();
+
+        key_chars.entry(first_char)
+            .or_insert_with(Vec::new)
+            .push(key.clone());
+
+        // Recursively validate nested keymaps
+        if let KeymapValue::Nested(nested) = value {
+            let mut new_path = path.clone();
+            new_path.push(key.clone());
+            validate_keymaps_recursive(nested, &new_path, errors);
+        }
+    }
+
+    // Report conflicts
+    for (char, keys) in key_chars {
+        if keys.len() > 1 {
+            let path_str = if path.is_empty() {
+                "root".to_string()
+            } else {
+                path.join(" → ")
+            };
+
+            errors.push(ValidationError {
+                error_type: "Key Conflict".to_string(),
+                message: format!(
+                    "Multiple keys start with '{}' at {}: {}",
+                    char,
+                    path_str,
+                    keys.join(", ")
+                ),
+                line: None,
+            });
+        }
+    }
 }
 
 fn load_layer_configs(layers_dir: &PathBuf) -> Result<Vec<LayerConfig>, String> {
@@ -150,6 +223,21 @@ fn load_settings(state: State<AppState>) -> Result<AppSettings, String> {
         .map_err(|e| format!("Failed to parse settings YAML: {}", e))?;
 
     Ok(settings)
+}
+
+#[tauri::command]
+fn load_theme(state: State<AppState>, theme_name: String) -> Result<String, String> {
+    // Try to load theme from config directory
+    let theme_file = state.config_dir.join(format!("themes/{}.css", theme_name));
+
+    if !theme_file.exists() {
+        return Err(format!("Theme '{}' not found", theme_name));
+    }
+
+    let content = fs::read_to_string(&theme_file)
+        .map_err(|e| format!("Failed to read theme file: {}", e))?;
+
+    Ok(content)
 }
 
 #[cfg(target_os = "macos")]
@@ -603,6 +691,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             load_keymaps,
             load_settings,
+            load_theme,
             execute_command,
             reposition_window,
             get_focused_app,
