@@ -6,8 +6,19 @@ import { AnimatePresence } from 'framer-motion';
 import WhichKeyMenu from './components/WhichKeyMenu';
 import './App.css';
 
+interface ToggleState {
+  label: string;
+  command: string;
+  check_command?: string;
+}
+
+interface ToggleConfig {
+  states: ToggleState[];
+  persist?: boolean;
+}
+
 interface Keymap {
-  [key: string]: string | Keymap;
+  [key: string]: string | Keymap | ToggleConfig;
 }
 
 interface AppSettings {
@@ -238,13 +249,32 @@ function App() {
     };
   }, []); // Run once on mount - never recreate listeners
 
-  const handleKeyPress = (key: string) => {
+  const handleKeyPress = async (key: string) => {
     const newPath = [...currentPath, key];
     const current = getCurrentKeymap(newPath);
 
     if (typeof current === 'string') {
       // Execute command
       invoke('execute_command', { command: current });
+
+      // In hydra mode, reset path but keep menu open
+      if (hydraMode) {
+        setCurrentPath([]);
+      } else {
+        handleClose();
+      }
+    } else if (current && 'states' in current) {
+      // Handle toggle
+      const togglePath = newPath.join('.');
+      try {
+        const label = await invoke('execute_toggle', {
+          toggle_path: togglePath,
+          toggle_config: current
+        });
+        console.log('Toggle executed:', label);
+      } catch (err) {
+        console.error('Toggle error:', err);
+      }
 
       // In hydra mode, reset path but keep menu open
       if (hydraMode) {

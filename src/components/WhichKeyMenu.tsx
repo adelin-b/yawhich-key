@@ -2,8 +2,19 @@ import { useEffect, useCallback, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './WhichKeyMenu.css';
 
+interface ToggleState {
+  label: string;
+  command: string;
+  check_command?: string;
+}
+
+interface ToggleConfig {
+  states: ToggleState[];
+  persist?: boolean;
+}
+
 interface Keymap {
-  [key: string]: string | Keymap;
+  [key: string]: string | Keymap | ToggleConfig;
 }
 
 interface WhichKeyMenuProps {
@@ -217,7 +228,8 @@ const WhichKeyMenu = ({
 
       return filtered.map((item) => {
         const displayKey = item.key.replace(/^\+/, '');
-        const isNested = typeof item.value !== 'string';
+        const isToggle = typeof item.value === 'object' && 'states' in item.value;
+        const isNested = typeof item.value !== 'string' && !isToggle;
         const keyChar = displayKey.charAt(0);
         const style = getCategoryStyle(item.key, item.value);
         const pathDisplay = item.path.slice(0, -1).map(k => k.replace(/^\+/, '')).join(' → ');
@@ -256,7 +268,8 @@ const WhichKeyMenu = ({
     // Normal mode: show current level only
     return Object.entries(keymap).map(([key, value]) => {
       const displayKey = key.replace(/^\+/, '');
-      const isNested = typeof value !== 'string';
+      const isToggle = typeof value === 'object' && 'states' in value;
+      const isNested = typeof value !== 'string' && !isToggle;
       const keyChar = displayKey.charAt(0);
       const style = getCategoryStyle(key, value);
 

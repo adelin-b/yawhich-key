@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
+use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager, State, Window, LogicalPosition, LogicalSize};
 use tauri_plugin_global_shortcut::{Code, Modifiers, Shortcut, GlobalShortcutExt};
 
@@ -20,8 +21,24 @@ use std::ffi::CStr;
 #[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
 #[serde(untagged)]
 enum KeymapValue {
+    Toggle(ToggleConfig),
     Command(String),
     Nested(HashMap<String, KeymapValue>),
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
+struct ToggleConfig {
+    states: Vec<ToggleState>,
+    #[serde(default)]
+    persist: bool, // Whether to remember state between sessions
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
+struct ToggleState {
+    label: String,
+    command: String,
+    #[serde(default)]
+    check_command: Option<String>, // Command to check current state
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -68,6 +85,7 @@ struct ValidationResult {
 
 struct AppState {
     config_dir: PathBuf,
+    toggle_states: Mutex<HashMap<String, usize>>, // Track current state index for each toggle
 }
 
 fn get_config_dir() -> PathBuf {
@@ -82,12 +100,20 @@ fn get_config_dir() -> PathBuf {
 fn load_keymaps(state: State<AppState>) -> Result<HashMap<String, KeymapValue>, String> {
     let core_layer = state.config_dir.join("layers/core.yaml");
 
+    eprintln!("[DEBUG] load_keymaps called");
+    eprintln!("[DEBUG] Config dir: {:?}", state.config_dir);
+    eprintln!("[DEBUG] Core layer path: {:?}", core_layer);
+    eprintln!("[DEBUG] Core layer exists: {}", core_layer.exists());
+
     if !core_layer.exists() {
         // Fallback to old location
         let old_location = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .unwrap()
             .join("layers/core.yaml");
+
+        eprintln!("[DEBUG] Trying fallback location: {:?}", old_location);
+        eprintln!("[DEBUG] Fallback exists: {}", old_location.exists());
 
         if old_location.exists() {
             return load_yaml_keymaps(&old_location);
@@ -100,11 +126,22 @@ fn load_keymaps(state: State<AppState>) -> Result<HashMap<String, KeymapValue>, 
 }
 
 fn load_yaml_keymaps(path: &PathBuf) -> Result<HashMap<String, KeymapValue>, String> {
+    eprintln!("[DEBUG] load_yaml_keymaps: Reading file {:?}", path);
+
     let content = fs::read_to_string(path)
         .map_err(|e| format!("Failed to read keymap file: {}", e))?;
 
+    eprintln!("[DEBUG] File content length: {} bytes", content.len());
+    eprintln!("[DEBUG] First 200 chars: {}", &content.chars().take(200).collect::<String>());
+
     let config: LayerConfig = serde_yaml::from_str(&content)
-        .map_err(|e| format!("Failed to parse YAML: {}", e))?;
+        .map_err(|e| {
+            eprintln!("[ERROR] YAML parse error: {}", e);
+            format!("Failed to parse YAML: {}", e)
+        })?;
+
+    eprintln!("[DEBUG] Parsed config, keymap count: {}", config.keymaps.len());
+    eprintln!("[DEBUG] Keymap keys: {:?}", config.keymaps.keys().collect::<Vec<_>>());
 
     // Validate for key conflicts
     let validation = validate_keymaps(&config.keymaps);
@@ -576,6 +613,63 @@ async fn execute_command(command: String, window: Window) -> Result<(), String> 
 }
 
 #[tauri::command]
+async fn execute_toggle(
+    toggle_path: String,
+    toggle_config: ToggleConfig,
+    state: State<'_, AppState>,
+    window: Window,
+) -> Result<String, String> {
+    // Hide window first
+    window.hide().map_err(|e| e.to_string())?;
+
+    // Get current state index
+    let mut toggle_states = state.toggle_states.lock().map_err(|e| e.to_string())?;
+    let current_index = toggle_states.get(&toggle_path).copied().unwrap_or(0);
+
+    // Calculate next state index
+    let next_index = (current_index + 1) % toggle_config.states.len();
+
+    // Get the next state
+    let next_state = &toggle_config.states[next_index];
+
+    // Store the new state index
+    toggle_states.insert(toggle_path.clone(), next_index);
+
+    // Resolve and execute the command
+    let resolved_command = resolve_default_apps(&next_state.command);
+
+    // Execute command in shell
+    #[cfg(target_os = "macos")]
+    {
+        Command::new("sh")
+            .arg("-c")
+            .arg(&resolved_command)
+            .spawn()
+            .map_err(|e| format!("Failed to execute toggle command: {}", e))?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        Command::new("sh")
+            .arg("-c")
+            .arg(&resolved_command)
+            .spawn()
+            .map_err(|e| format!("Failed to execute toggle command: {}", e))?;
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        Command::new("cmd")
+            .arg("/C")
+            .arg(&resolved_command)
+            .spawn()
+            .map_err(|e| format!("Failed to execute toggle command: {}", e))?;
+    }
+
+    Ok(next_state.label.clone())
+}
+
+#[tauri::command]
 async fn reposition_window(window: Window) -> Result<(), String> {
     if let Ok(monitor) = window.current_monitor() {
         if let Some(monitor) = monitor {
@@ -640,7 +734,10 @@ fn main() {
                     .expect("Failed to create config directory");
             }
 
-            app.manage(AppState { config_dir });
+            app.manage(AppState {
+                config_dir,
+                toggle_states: Mutex::new(HashMap::new()),
+            });
 
             // Position window at bottom of screen with full width
             if let Some(window) = app.get_webview_window("main") {
@@ -693,6 +790,7 @@ fn main() {
             load_settings,
             load_theme,
             execute_command,
+            execute_toggle,
             reposition_window,
             get_focused_app,
             get_focused_window,
